@@ -1,0 +1,12 @@
+@(job: JobDescription)
+
+@main("Job description editor") {
+   
+   <ul> 
+   @for(query <- job.getQueryNames()) {
+     <li>
+     @query : @job.getQueryForName(query)
+     </li>
+   }
+   </ul>
+}

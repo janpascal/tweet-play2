@@ -1,0 +1,88 @@
+@(jobDescriptionForm: Form[JobDescription])
+
+@import helper._
+
+@queryField(query: Field, className: String = "query") = { 
+          <tr class="@className">
+             <td><a class="removeQuery btn danger">Remove</a></td>
+@*             <td>@inputText(query("name"))</td> *@
+             <td>@inputText(query("terms"))</td>
+          </tr>}
+
+@main("Add") {
+    
+    <h1>Add a job description</h1>
+    
+    @form(routes.Application.createJobDescriptionStep2()) {
+        
+        <fieldset>
+        
+            @inputText(jobDescriptionForm("name"), '_label -> "Job name")
+
+  <div class="queries">
+            <table class="zebra-striped">
+            <thead>
+                <tr>
+                    <th></th>
+                    @*<th class="header">Query name</th>*@
+                    <th class="header">Query terms</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                  <td></td>
+@*                  <td></td>*@
+                  <td>
+                    <div class="clearfix">
+                   <div class="input">
+                    <a class="addQuery btn success">Add a query</a>
+                </div>
+            </div>
+            </td>
+            </tr>
+                @repeat(jobDescriptionForm("queries"), min = 2) { query =>  
+                    @queryField(query)
+                }            
+                @queryField(jobDescriptionForm("queries[x]"), "query_template")
+            </tbody>
+
+           </table>
+   </div>
+          </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Next step..." class="btn primary"> or 
+            <a href="@routes.Application.jobDescriptionList()" class="btn">Cancel</a> 
+        </div>
+        
+    }
+    <script type="text/javascript" charset="utf-8">
+        
+        $(document).on('click','.removeQuery', function(e) {
+            var queries = $(this).parents('.queries')
+            $(this).parents('.query').remove()
+            @*renumber(queries)*@
+        })
+        
+        $(document).on('click', '.addQuery', function(e) {
+            var queries = $('.queries')
+            var template = $('.query_template', queries)
+            template.before('<tr class="clearfix query">' + template.html() + '</tr>')
+            renumber(queries)
+        })
+
+        $('#form').submit(function() {
+            $('.query_template').remove()
+        })
+
+        var renumber = function(queries) {
+            $('.query input', this).each(function(i) {
+                $(this).attr('name',
+                $(this).attr('name').replace(/queries\[.+\]/g, 'queries[' + i + ']'))
+            })
+        }
+
+
+</script>
+    
+}

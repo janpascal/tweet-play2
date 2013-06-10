@@ -4,6 +4,20 @@
 
 # Home page
 GET     /                           controllers.Application.index()
+GET     /job                        controllers.Application.job()
+GET     /jobDescriptions         controllers.Application.jobDescriptionList()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+# Add job description
+GET     /job_descriptions/new              controllers.Application.createJobDescription()
+POST    /job_descriptions/step2            controllers.Application.createJobDescriptionStep2()
+POST    /job_descriptions                  controllers.Application.saveJobDescription()
+
+# Edit existing job description
+GET     /job_descriptions/:id              controllers.Application.editJobDescription(id:Long)
+POST    /job_descriptions/:id              controllers.Application.updateJobDescription(id:Long)
+
+# Delete a computer
+POST    /job_descriptions/:id/delete  controllers.Application.deleteJobDescription(id:Long)

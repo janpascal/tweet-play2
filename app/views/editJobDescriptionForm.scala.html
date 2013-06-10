@@ -1,0 +1,27 @@
+@(id:Long, jobDescriptionForm: Form[JobDescription])
+
+@import helper._
+
+@main("Edit") {
+    
+    <h1>Edit a job description</h1>
+    
+    @form(routes.Application.updateJobDescription(id)) {
+        
+        <fieldset>
+        
+            @inputText(jobDescriptionForm("name"), '_label -> "Job name")
+
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Save this job description" class="btn primary"> or 
+            <a href="@routes.Application.jobDescriptionList()" class="btn">Cancel</a> 
+        </div>
+        
+    }
+    @form(routes.Application.deleteJobDescription(id), 'class -> "topRight") {
+        <input type="submit" value="Delete this computer" class="btn danger">
+    }
+ 
+}

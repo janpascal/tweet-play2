@@ -2,6 +2,12 @@
 
 @main("Welcome to Play 2.1") {
     
-    @play20.welcome(message, style = "Java")
+    @** play20.welcome(message, style = "Java") **@
+
+    <a id="desc_list" href="@routes.Application.jobDescriptionList()">List job descriptions</a>
+<br>
+    <a class="btn success" id="add"
+    href="@routes.Application.createJobDescription()">Add a
+    new job description</a>
     
 }

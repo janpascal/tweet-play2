@@ -1,0 +1,30 @@
+@(descriptions:Collection[JobDescription])
+
+@main("Job description list") {
+    @if(flash.containsKey("success")) {
+        <div class="alert-message warning">
+            <strong>Done!</strong> @flash.get("success")
+        </div>
+    } 
+
+
+      <table class="computers zebra-striped">
+          <thead>
+              <tr>
+                  <th class="header">Job name</th>
+              </tr>
+          </thead>
+          <tbody>
+
+        @for(job <- descriptions) {
+            <tr>
+                <td><a href="@routes.Application.editJobDescription(job.id)">@job.name</a></td>
+            </tr>
+        }
+</tbody>
+</table>
+
+    <a class="btn success" id="add"
+    href="@routes.Application.createJobDescription()">Add a
+    new job description</a>
+}
