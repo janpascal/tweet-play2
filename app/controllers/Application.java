@@ -1,18 +1,58 @@
 package controllers;
 
+import java.io.File;
+
 import play.*;
 import play.mvc.*;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
+import play.mvc.Http.RequestBody;
 import play.data.*;
 import static play.data.Form.*;
 
 import views.html.*;
 import models.*;
+import tweet.Config;
+import tweet.Main;
 
 public class Application extends Controller {
 
     public static Result index() {
         return ok(index.render("Your new application is ready."));
     }
+
+    public static Result selectConfig() {
+        return ok(selectconfig.render());
+    }
+
+    public static Result uploadConfig() {
+        RequestBody mainbody = request().body();
+        MultipartFormData body = mainbody.asMultipartFormData();
+        if(body==null) {
+            flash("error", "Missing file");
+            return redirect(routes.Application.index());
+        }
+        FilePart bestand = body.getFile("bestand");
+        if (bestand != null) {
+          String fileName = bestand.getFilename();
+          File file = bestand.getFile();
+          try {
+            Config config = new Config(file);
+            File[] files = Main.runConfig(config);
+            File f = files[0];
+            response().setContentType("application/x-download");  
+            response().setHeader("Content-disposition","attachment; filename="+f.getName()); 
+            return ok(f);
+          } catch (Exception e) {
+            e.printStackTrace();
+            flash("error", "File not found "+e.getMessage());
+            return redirect(routes.Application.index());    
+          }
+        } else {
+          flash("error", "Missing file");
+          return redirect(routes.Application.index());    
+        }
+      }
 
     public static Result job() {
       return TODO;

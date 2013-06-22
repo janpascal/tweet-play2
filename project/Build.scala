@@ -11,7 +11,12 @@ object ApplicationBuild extends Build {
     // Add your project dependencies here,
     javaCore,
     javaJdbc,
-    javaEbean
+    javaEbean,
+    // "com.googlecode.json-simple"% "json-simple"% "1.1",
+    "org.apache.poi" % "poi" % "3.9",
+    "org.twitter4j" % "twitter4j-core" % "[3.0,)",
+    "commons-configuration" % "commons-configuration" % "1.9",
+    "com.google.code.geocoder-java" % "geocoder-java" % "0.15"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(

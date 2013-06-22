@@ -1,0 +1,15 @@
+
+
+@main("Selecteer configuratiebestand") {
+    <h1>Selecteer configuratiebestand</h1>
+
+    @helper.form(action = routes.Application.uploadConfig(), 'enctype -> "multipart/form-data") {
+        
+        <input type="file" name="bestand">
+        
+        <p>
+            <input type="submit" class="btn primary" value="Start">
+        </p>
+        
+    }
+}
