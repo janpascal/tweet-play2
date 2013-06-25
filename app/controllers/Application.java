@@ -1,8 +1,16 @@
 package controllers;
 
-import java.io.File;
+import java.io.*;
+import java.util.*;
+
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import play.*;
+import play.libs.Json;
+import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.ArrayNode;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
@@ -25,6 +33,10 @@ public class Application extends Controller {
         return ok(selectconfig.render());
     }
 
+    // FIXME #UGLY keep entire log in memory
+    static List<String> messages = new ArrayList<String>();
+
+
     public static Result uploadConfig() {
         RequestBody mainbody = request().body();
         MultipartFormData body = mainbody.asMultipartFormData();
@@ -37,12 +49,26 @@ public class Application extends Controller {
           String fileName = bestand.getFilename();
           File file = bestand.getFile();
           try {
+            Job job = new Job();
+            job.save();
+            job.addConfig(file);
             Config config = new Config(file);
-            File[] files = Main.runConfig(config);
-            File f = files[0];
+            Main main = new Main();
+            main.addLogger(new tweet.LogCallback() {
+              public void log(String line) {
+                Logger.info(line); 
+                messages.add(line);
+              }
+            });
+            File[] files = main.runConfig(config, job.jobPath().toString());
+            for(File f: files) {
+              job.addExcelResult(f);
+            }
+            Path zip = job.getZip();
+            job.update();
             response().setContentType("application/x-download");  
-            response().setHeader("Content-disposition","attachment; filename="+f.getName()); 
-            return ok(f);
+            response().setHeader("Content-disposition","attachment; filename=results.zip"); 
+            return ok(zip.toFile());
           } catch (Exception e) {
             e.printStackTrace();
             flash("error", "File not found "+e.getMessage());
@@ -54,6 +80,49 @@ public class Application extends Controller {
         }
       }
 
+    public static Result logLines(Integer lastLine) {
+      ObjectNode result = Json.newObject();
+      synchronized(messages) {
+          result.put("lastLine", messages.size());
+          ArrayNode jsonArray = result.putArray("messages");
+          for(int i=lastLine; i<messages.size(); i++) {
+              jsonArray.add("(" + i+") " + messages.get(i));
+          }
+      }
+      return ok(result);
+    }
+
+    public static Result downloadExcel(Long jobId, String xlfile) {
+        Job job = Job.find.byId(jobId);
+        try {
+            Path xl = job.jobPath().resolve(xlfile);
+            if (!Files.exists(xl)) {
+              return ok("File does not exist");
+            }
+            response().setContentType("application/x-download");  
+            response().setHeader("Content-disposition","attachment; filename="+xlfile); 
+            return ok(xl.toFile());
+        } catch (IOException e) {
+            Logger.info("Exception sending sxcel file", e);
+            return ok("Exception opening file");
+        }
+    }
+
+    public static Result downloadZip(Long jobId) {
+        Job job = Job.find.byId(jobId);
+        try {
+            Path xl = job.jobPath().resolve("results.zip");
+            if (!Files.exists(xl)) {
+              return ok("File does not exist");
+            }
+            response().setContentType("application/x-download");  
+            response().setHeader("Content-disposition","attachment; filename=job"+jobId+"results.zip"); 
+            return ok(xl.toFile());
+        } catch (IOException e) {
+            Logger.info("Exception sending zipfile", e);
+            return ok("Exception opening file");
+        }
+    }
     public static Result job() {
       return TODO;
       /*  JobDescription job = new JobDescription();
@@ -142,5 +211,19 @@ public class Application extends Controller {
       return TODO;
     }
 
+  public static Result javascriptRoutes() {
+    response().setContentType("text/javascript");
+    return ok(
+      Routes.javascriptRouter("jsRoutes",
+        // Routes
+        controllers.routes.javascript.Application.logLines()
+      )
+    );
+  }
+
+  public static Result showJobs() {
+    List<Job> jobs = Job.find.all();
+        return ok(resultlist.render(jobs));
+  }
 }
 

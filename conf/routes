@@ -10,6 +10,15 @@ GET     /jobDescriptions         controllers.Application.jobDescriptionList()
 GET     /selectconfig               controllers.Application.selectConfig()
 POST    /uploadconfig               controllers.Application.uploadConfig()
 
+GET     /logLines             controllers.Application.logLines(last: Integer)
+
+GET     /joblist                    controllers.Application.showJobs()
+GET     /downloadexcel              controllers.Application.downloadExcel(jobId: Long, xlfile: String)
+GET     /downloadzip                controllers.Application.downloadZip(jobId: Long)
+
+#javascript routes
+GET    /assets/javascripts/routes      controllers.Application.javascriptRoutes()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 

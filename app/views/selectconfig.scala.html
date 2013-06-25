@@ -1,3 +1,4 @@
+<script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
 
 
 @main("Selecteer configuratiebestand") {
@@ -12,4 +13,28 @@
         </p>
         
     }
+
+<div id="log" class="modal"/>
 }
+
+<script type="text/javascript" charset="utf-8">
+
+var previous = 0;
+
+var updateLog=function() {
+      jsRoutes.controllers.Application.logLines(previous).ajax({
+        success: function(data) {
+          previous = data.lastLine;
+          for(var line in data.messages) {
+            $("#log").append("<p>"+data.messages[line]+"</p>");
+          }
+        },
+        error: function() {
+          // ignore alert("Error!")
+        }
+      })
+}
+
+setInterval(function(){updateLog()},1000);
+
+</script>

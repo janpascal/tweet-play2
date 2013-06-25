@@ -41,6 +41,7 @@ public class APIFetcher {
 	}
 	
 	private List<Handler> handlers;
+        private List<LogCallback> loggers;
 	
 	public APIFetcher(int pageSize, int maxPages) {
 		this.pageSize = pageSize;
@@ -54,11 +55,22 @@ public class APIFetcher {
 	
 	private void init() {
 		this.handlers = new ArrayList<Handler>();
+                this.loggers = new ArrayList<LogCallback>();
 	}
 	
 	public void addHandler(Handler handler) {
 		this.handlers.add(handler);
 	}
+
+        public void addLogger(LogCallback logger) {
+                loggers.add(logger);
+        }
+
+        public void log(String line) {
+            for (LogCallback logger: loggers) {
+                logger.log(line);
+            }
+        }
 	
 	public void fetchAll(String queryName, String terms) throws TwitterException {
         Twitter twitter = TwitterFactory.getSingleton();
@@ -71,9 +83,9 @@ public class APIFetcher {
 			if(maxId>0) {
 			    query.setMaxId(maxId);
 			}
-            System.err.println("Query: "+query.toString());
+            log("Query: "+query.toString());
 	        QueryResult result = twitter.search(query);
-	        System.out.println("Aantal resultaten: " +result.getTweets().size());
+	        log("Aantal resultaten: " +result.getTweets().size());
 
 	        long lastId=Long.MAX_VALUE;
             for (Status status : result.getTweets()) {

@@ -77,3 +77,8 @@ body {
 .query_template, .profile_template {
     display: none;
 }
+
+.log {
+    height: 50%; 
+    overflow-y: scroll;
+}

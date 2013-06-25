@@ -3,6 +3,13 @@
 
 # --- !Ups
 
+create table job (
+  id                        bigint not null,
+  name                      varchar(255),
+  datum                     timestamp,
+  constraint pk_job primary key (id))
+;
+
 create table job_description (
   id                        bigint not null,
   name                      varchar(255),
@@ -30,6 +37,8 @@ create table job_query_job_output (
   job_output_id                  bigint not null,
   constraint pk_job_query_job_output primary key (job_query_id, job_output_id))
 ;
+create sequence job_seq;
+
 create sequence job_description_seq;
 
 create sequence job_output_seq;
@@ -51,6 +60,8 @@ alter table job_query_job_output add constraint fk_job_query_job_output_job_o_02
 
 SET REFERENTIAL_INTEGRITY FALSE;
 
+drop table if exists job;
+
 drop table if exists job_description;
 
 drop table if exists job_output;
@@ -60,6 +71,8 @@ drop table if exists job_query_job_output;
 drop table if exists job_query;
 
 SET REFERENTIAL_INTEGRITY TRUE;
+
+drop sequence if exists job_seq;
 
 drop sequence if exists job_description_seq;
 

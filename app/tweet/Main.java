@@ -13,13 +13,34 @@ import twitter4j.TwitterException;
 
 public class Main {
 
-	public static File[] runConfig(Config config) throws TwitterException, ConfigurationException {
+      private List<LogCallback> loggers;
+
+      public Main() {
+          loggers = new ArrayList<LogCallback>();
+      }
+
+      public void addLogger(LogCallback logger) {
+        loggers.add(logger);
+      }
+
+      public void log(String line) {
+        for (LogCallback logger: loggers) {
+          logger.log(line);
+        }
+      }
+
+	public File[] runConfig(Config config, String prefix) throws TwitterException, ConfigurationException {
 		Locale.setDefault(Locale.US); // Needed because day and month names are in English
 		APIFetcher fetcher = new APIFetcher(config.getPageSize(),config.getMaxPages());
+                fetcher.addLogger(new LogCallback(){
+                    public void log(String line) {
+                         Main.this.log(line);
+                    }
+                });
 		
 		List<Exporter> exporters = new ArrayList<Exporter>();
 		for(String filename: config.getExcelSet()) {
-			final Exporter e = new Exporter("/tmp/"+filename);
+			final Exporter e = new Exporter(prefix+"/"+filename);
 			final List<String> terms = config.getTermsForExcel(filename);
 			exporters.add(e);
 			fetcher.addHandler( new APIFetcher.Handler() {
@@ -51,4 +72,16 @@ public class Main {
         }
         return result;
 	}
+
+	public static void main(String[] args) throws TwitterException, ConfigurationException {
+          Config config = new Config("config.ini");
+          Main main = new Main();
+          main.addLogger( new LogCallback(){
+              public void log(String line) {
+                System.out.println(line); 
+              }
+          });
+          main.runConfig(config, "");
+        }
+
 }
