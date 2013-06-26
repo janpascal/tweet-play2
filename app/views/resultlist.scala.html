@@ -9,6 +9,7 @@
     <th>zoekvragen</th>
     <th>resultaten</th>
     <th>zip</th>
+    <th>configuratie</th>
     </tr>
 	@for(job <- jobs) {
           <tr>
@@ -24,11 +25,16 @@
                    <a href="@routes.Application.downloadExcel(job.id,xls.getFileName().toString())">
                       @xls.getFileName().toString()</a>
                  }</td>
-                 <td>
-                   <a href="@routes.Application.downloadZip(job.id)">zipfile</a>
-                 </td>
+             <td>
+               <a href="@routes.Application.downloadZip(job.id)">zipfile</a>
+             </td>
+             <td>
+               <a href="@routes.Application.downloadConfig(job.id)">config.ini</a>
+             </td>
 
 	      </tr>
 	} 
     </table>
+   <a class="btn success" href="@routes.Application.selectConfig()">Nieuwe
+   zoekactie</a>
 }

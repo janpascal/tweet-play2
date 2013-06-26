@@ -64,11 +64,14 @@ public class Application extends Controller {
             for(File f: files) {
               job.addExcelResult(f);
             }
-            Path zip = job.getZip();
             job.update();
+            /*
+            Path zip = job.getZip();
             response().setContentType("application/x-download");  
             response().setHeader("Content-disposition","attachment; filename=results.zip"); 
             return ok(zip.toFile());
+            */
+            return redirect(routes.Application.showJobs());
           } catch (Exception e) {
             e.printStackTrace();
             flash("error", "File not found "+e.getMessage());
@@ -116,8 +119,24 @@ public class Application extends Controller {
               return ok("File does not exist");
             }
             response().setContentType("application/x-download");  
-            response().setHeader("Content-disposition","attachment; filename=job"+jobId+"results.zip"); 
+            response().setHeader("Content-disposition","attachment; filename=job"+jobId+"-results.zip"); 
             return ok(xl.toFile());
+        } catch (IOException e) {
+            Logger.info("Exception sending zipfile", e);
+            return ok("Exception opening file");
+        }
+    }
+
+    public static Result downloadConfig(Long jobId) {
+        Job job = Job.find.byId(jobId);
+        try {
+            Path ini = job.jobPath().resolve("config.ini");
+            if (!Files.exists(ini)) {
+              return ok("File does not exist");
+            }
+            response().setContentType("application/x-download");  
+            response().setHeader("Content-disposition","attachment; filename=job"+jobId+"-config.ini"); 
+            return ok(ini.toFile());
         } catch (IOException e) {
             Logger.info("Exception sending zipfile", e);
             return ok("Exception opening file");
