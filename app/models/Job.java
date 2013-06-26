@@ -15,6 +15,7 @@ import play.db.ebean.*;
 import play.data.format.*;
 import play.data.validation.*;
 import play.Logger;
+import play.Play;
 
 import com.avaje.ebean.*; 
 
@@ -42,9 +43,6 @@ public class Job extends Model {
     private boolean loaded = false;
     @Transient
     private Config config;
-
-    // FIXME put in config file
-    public static String basepath="/home/janpascal/src/tweet-play2/results";
 
     public Job() {
       xls = null;
@@ -149,6 +147,7 @@ public class Job extends Model {
 
 
     public Path jobPath() throws IOException {
+        String basepath = Play.application().configuration().getString("tweet.basepath");
         Path path = FileSystems.getDefault().getPath(basepath).resolve(""+id);
         Files.createDirectories(path);
         return path;

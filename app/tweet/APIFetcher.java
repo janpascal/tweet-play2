@@ -29,7 +29,10 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.conf.ConfigurationBuilder;
 
+import play.Play;
+import play.Configuration;
 
 public class APIFetcher {
 	
@@ -73,7 +76,16 @@ public class APIFetcher {
         }
 	
 	public void fetchAll(String queryName, String terms) throws TwitterException {
-        Twitter twitter = TwitterFactory.getSingleton();
+
+         Configuration appConf = Play.application().configuration();
+          ConfigurationBuilder cb = new ConfigurationBuilder();
+          cb.setDebugEnabled(true)
+            .setOAuthConsumerKey(appConf.getString("twitter4j.oauth.consumerKey"))
+            .setOAuthConsumerSecret(appConf.getString("twitter4j.oauth.consumerSecret"))
+            .setOAuthAccessToken(appConf.getString("twitter4j.oauth.accessToken"))
+            .setOAuthAccessTokenSecret(appConf.getString("twitter4j.oauth.accessTokenSecret"));
+          TwitterFactory tf = new TwitterFactory(cb.build());
+          Twitter twitter = tf.getInstance();
 
         long maxId=-1;
 		long previousLastId=Long.MAX_VALUE;
