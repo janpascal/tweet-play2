@@ -18,3 +18,4 @@ twitter4j.properties
 /results
 /config.ini
 .*.swp
+conf/db.conf

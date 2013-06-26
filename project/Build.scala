@@ -16,7 +16,8 @@ object ApplicationBuild extends Build {
     "org.apache.poi" % "poi" % "3.9",
     "org.twitter4j" % "twitter4j-core" % "[3.0,)",
     "commons-configuration" % "commons-configuration" % "1.9",
-    "com.google.code.geocoder-java" % "geocoder-java" % "0.15"
+    "com.google.code.geocoder-java" % "geocoder-java" % "0.15",
+    "mysql" % "mysql-connector-java" % "5.1.18"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
