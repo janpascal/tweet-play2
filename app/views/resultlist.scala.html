@@ -13,6 +13,11 @@
     </tr>
 	@for(job <- jobs) {
           <tr>
+          <td>
+                @helper.form(action = routes.Application.deleteJob(job.id)) {
+                    <input type="submit" value="Wis" class="btn danger">
+                }
+          </td>
 	    <td>@job.id</td>
           <td>@if(job.datum!=null) {
                         @job.datum.format("dd/MM/yyyy")

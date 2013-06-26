@@ -10,6 +10,9 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.FileSystems;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.FileVisitResult;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import play.db.ebean.*;
 import play.data.format.*;
@@ -151,6 +154,32 @@ public class Job extends Model {
         Path path = FileSystems.getDefault().getPath(basepath).resolve(""+id);
         Files.createDirectories(path);
         return path;
+    }
+
+    public void remove() throws IOException {
+      Path start= jobPath();
+     Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+         @Override
+         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+             throws IOException
+         {
+             Files.delete(file);
+             return FileVisitResult.CONTINUE;
+         }
+         @Override
+         public FileVisitResult postVisitDirectory(Path dir, IOException e)
+             throws IOException
+         {
+             if (e == null) {
+                 Files.delete(dir);
+                 return FileVisitResult.CONTINUE;
+             } else {
+                 // directory iteration failed
+                 throw e;
+             }
+         }
+     });
+      super.delete();
     }
  
     public static Model.Finder<Long,Job> find = 

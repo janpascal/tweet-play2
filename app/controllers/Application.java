@@ -142,6 +142,19 @@ public class Application extends Controller {
             return ok("Exception opening file");
         }
     }
+
+    public static Result deleteJob(Long id) {
+      try {
+          Job.find.byId(id).remove();
+      flash("success", "Job removed");
+      } catch (IOException e) {
+        Logger.info(e.getMessage(), e);
+        flash("error", "Error deleting job "+e.getMessage());
+      }
+
+      return redirect(routes.Application.showJobs());
+    }
+
     public static Result job() {
       return TODO;
       /*  JobDescription job = new JobDescription();

@@ -16,6 +16,7 @@ GET     /joblist                    controllers.Application.showJobs()
 GET     /downloadexcel              controllers.Application.downloadExcel(jobId: Long, xlfile: String)
 GET     /downloadzip                controllers.Application.downloadZip(jobId: Long)
 GET     /downloadconfig             controllers.Application.downloadConfig(jobId: Long)
+POST    /deletejob                  controllers.Application.deleteJob(id: Long)
 
 #javascript routes
 GET    /assets/javascripts/routes      controllers.Application.javascriptRoutes()
