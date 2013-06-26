@@ -76,21 +76,16 @@ public class Job extends Model {
     }
 
     public List<Path> getResults() {
-      Logger.info("Getting results for job "+id);
       if(xls==null) {
-          Logger.info("Fetching results");
           xls = new ArrayList<Path>();
           try {
               File dir = jobPath().toFile();
-              Logger.info("Looking in dir "+dir.toString());
               FilenameFilter filter = new FilenameFilter() {
                 public boolean accept(File dir, String name) {
-                  Logger.info("Checking file "+name);
                   return name.endsWith(".xls");
                 }
               };
               for( File f: dir.listFiles(filter)) {
-                Logger.info("Adding file "+f.getPath());
                 xls.add(f.toPath());
               }
           } catch (IOException e) {

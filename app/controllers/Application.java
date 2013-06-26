@@ -57,7 +57,9 @@ public class Application extends Controller {
             main.addLogger(new tweet.LogCallback() {
               public void log(String line) {
                 Logger.info(line); 
-                messages.add(line);
+                synchronized(messages) {
+                    messages.add(line);
+                }
               }
             });
             File[] files = main.runConfig(config, job.jobPath().toString());
@@ -65,6 +67,9 @@ public class Application extends Controller {
               job.addExcelResult(f);
             }
             job.update();
+            synchronized(messages) {
+                messages = new ArrayList<String>();
+            }
             /*
             Path zip = job.getZip();
             response().setContentType("application/x-download");  

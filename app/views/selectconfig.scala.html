@@ -27,6 +27,7 @@ var updateLog=function() {
           previous = data.lastLine;
           for(var line in data.messages) {
             $("#log").append("<p>"+data.messages[line]+"</p>");
+            $("#log").animate({scrollTop: 10000}, 800);
           }
         },
         error: function() {
