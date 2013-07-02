@@ -18,6 +18,11 @@ GET     /downloadzip                controllers.Application.downloadZip(jobId: L
 GET     /downloadconfig             controllers.Application.downloadConfig(jobId: Long)
 POST    /deletejob                  controllers.Application.deleteJob(id: Long)
 
+# Streams
+GET     /streams/editterms          controllers.Streams.editTerms()
+POST    /streams/start              controllers.Streams.start()
+GET     /streams/excel              controllers.Streams.download()
+
 #javascript routes
 GET    /assets/javascripts/routes      controllers.Application.javascriptRoutes()
 

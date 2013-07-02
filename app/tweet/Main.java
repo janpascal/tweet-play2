@@ -10,6 +10,7 @@ import org.apache.commons.configuration.ConfigurationException;
 
 import twitter4j.Status;
 import twitter4j.TwitterException;
+import twitter4j.conf.Configuration;
 
 public class Main {
 
@@ -29,9 +30,9 @@ public class Main {
         }
       }
 
-	public File[] runConfig(Config config, String prefix) throws TwitterException, ConfigurationException {
+	public File[] runConfig(Configuration twitterConfiguration, Config config, String prefix) throws TwitterException, ConfigurationException {
 		Locale.setDefault(Locale.US); // Needed because day and month names are in English
-		APIFetcher fetcher = new APIFetcher(config.getPageSize(),config.getMaxPages());
+		APIFetcher fetcher = new APIFetcher(twitterConfiguration, config.getPageSize(),config.getMaxPages());
                 fetcher.addLogger(new LogCallback(){
                     public void log(String line) {
                          Main.this.log(line);
@@ -72,16 +73,4 @@ public class Main {
         }
         return result;
 	}
-
-	public static void main(String[] args) throws TwitterException, ConfigurationException {
-          Config config = new Config("config.ini");
-          Main main = new Main();
-          main.addLogger( new LogCallback(){
-              public void log(String line) {
-                System.out.println(line); 
-              }
-          });
-          main.runConfig(config, "");
-        }
-
 }

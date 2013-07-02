@@ -74,7 +74,7 @@ body {
     margin-bottom: 20px;
 }
 
-.query_template, .profile_template {
+.query_template, .profile_template, .term_template {
     display: none;
 }
 

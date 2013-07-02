@@ -1,8 +1,8 @@
 @(message: String)
 
-@main("Welcome to Play 2.1") {
+@main("Tweet downloader") {
     
-    @** play20.welcome(message, style = "Java") **@
+
 @*
     <a class="btn success" id="desc_list" href="@routes.Application.jobDescriptionList()">List job descriptions</a>
 <br>
@@ -12,11 +12,17 @@
 <br>
 
 *@
-
-   <a class="btn success" href="@routes.Application.selectConfig()">Run by
-   config.ini file</a>
+<h2>Gerichte zoekacties</h2>
+   <a class="btn success" href="@routes.Application.selectConfig()">Nieuwe
+   zoekactie</a>
 <br>
 <br>
     
    <a class="btn success" href="@routes.Application.showJobs()">Toon resultaten </a>
+
+<h2>Continue zoekactie</h2>
+   <a class="btn success" href="@routes.Streams.editTerms()">Stel zoektermen in</a>
+<br>
+<br>
+   <a class="btn success" href="@routes.Streams.download()">Download resultaten</a>
 }

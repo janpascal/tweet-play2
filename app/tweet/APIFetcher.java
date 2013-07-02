@@ -30,12 +30,11 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
-
-import play.Play;
-import play.Configuration;
+import twitter4j.conf.Configuration;
 
 public class APIFetcher {
 	
+        private twitter4j.conf.Configuration twitterConfiguration;
 	private int pageSize=100;
 	private int maxPages=49;
 	
@@ -46,13 +45,15 @@ public class APIFetcher {
 	private List<Handler> handlers;
         private List<LogCallback> loggers;
 	
-	public APIFetcher(int pageSize, int maxPages) {
+	public APIFetcher(Configuration twitterConfiguration, int pageSize, int maxPages) {
+                this.twitterConfiguration = twitterConfiguration;
 		this.pageSize = pageSize;
 		this.maxPages = maxPages;
 		init();
 	}
 	
-	public APIFetcher() {
+	public APIFetcher(Configuration twitterConfiguration) {
+                this.twitterConfiguration = twitterConfiguration;
 		init();
 	}
 	
@@ -77,14 +78,7 @@ public class APIFetcher {
 	
 	public void fetchAll(String queryName, String terms) throws TwitterException {
 
-         Configuration appConf = Play.application().configuration();
-          ConfigurationBuilder cb = new ConfigurationBuilder();
-          cb.setDebugEnabled(true)
-            .setOAuthConsumerKey(appConf.getString("twitter4j.oauth.consumerKey"))
-            .setOAuthConsumerSecret(appConf.getString("twitter4j.oauth.consumerSecret"))
-            .setOAuthAccessToken(appConf.getString("twitter4j.oauth.accessToken"))
-            .setOAuthAccessTokenSecret(appConf.getString("twitter4j.oauth.accessTokenSecret"));
-          TwitterFactory tf = new TwitterFactory(cb.build());
+          TwitterFactory tf = new TwitterFactory(twitterConfiguration);
           Twitter twitter = tf.getInstance();
 
         long maxId=-1;

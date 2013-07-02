@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -42,8 +43,8 @@ public class Exporter {
     private int currentRow;
     
     protected String filename;
-	private Geocoder geocoder;
-	private CellStyle idCellStyle;
+    private Geocoder geocoder;
+    private CellStyle idCellStyle;
 
     private static final String[] columns = { 
         "id",
@@ -67,10 +68,10 @@ public class Exporter {
         "metadata"};
 
 
-	public Exporter(String filename) {
-		this.filename = filename;
-		this.geocoder = new Geocoder();
-		
+    public Exporter(String filename) {
+        this.filename = filename;
+        this.geocoder = new Geocoder();
+        
         ids = new HashSet<Long>();
         wb = new HSSFWorkbook();
         sheet = wb.createSheet("tweets");
@@ -94,68 +95,84 @@ public class Exporter {
         idCellStyle.setDataFormat(format.getFormat("0"));
  
         currentRow = 1;
-	}
-	
-	public void addTweet(Status tweet) {
-        long id = tweet.getId();
-        if (ids.contains(id)) {
-          return;
+    }
+    
+    public void addTweet(SimpleTweet tweet) {
+            if (ids.contains(tweet.id)) {
+              return;
+            }
+            Row row = sheet.createRow((short)currentRow);
+            int colnr=0;
+            for (String col: columns) {
+              Cell cell = row.createCell(colnr);
+              
+              switch (col) {
+              case "id": cell.setCellType(HSSFCell.CELL_TYPE_STRING); cell.setCellValue(Long.toString(tweet.id)); break;
+              case "created_at":  cell.setCellValue(tweet.createdAt); cell.setCellStyle(dateCellStyle); break;
+              case "from_user": cell.setCellValue(tweet.userName); break;
+              case "from_user_id": cell.setCellValue(tweet.userId); cell.setCellType(HSSFCell.CELL_TYPE_NUMERIC); break;
+              case "in_reply_to": cell.setCellValue(tweet.inReplyToName); break;
+              case "text": cell.setCellValue(tweet.text); break;
+              case "geo": if (tweet.latitude != null && tweet.longitude != null) { 
+                    cell.setCellValue(tweet.latitude+","+tweet.longitude); 
+                  }
+                  break;
+              case "geo_text": 
+                           if (tweet.latitude!= null && tweet.longitude != null) {
+                                    GeocoderRequest request = new GeocoderRequest();
+                                    request.setLocation(new
+                                    LatLng(Double.toString(tweet.latitude),
+                                    Double.toString(tweet.longitude))); 
+                                    request.setLanguage("nl");
+                                    GeocodeResponse response = geocoder.geocode(request);
+                                    if(response.getStatus().equals(GeocoderStatus.OK) && !response.getResults().isEmpty()) {
+                                    GeocoderResult result = response.getResults().iterator().next();
+                                    cell.setCellValue(result.getFormattedAddress()); 
+                                    }
+                            } 
+                            break;
+              }
+              
+              colnr++;
+            }
+            ids.add(tweet.id);
+            currentRow++;
         }
-        Row row = sheet.createRow((short)currentRow);
-        int colnr=0;
-        for (String col: columns) {
-          Cell cell = row.createCell(colnr);
-          
-          switch (col) {
-          case "id": cell.setCellType(HSSFCell.CELL_TYPE_STRING); cell.setCellValue(Long.toString(tweet.getId())); break;
-          case "created_at":  cell.setCellValue(tweet.getCreatedAt()); cell.setCellStyle(dateCellStyle); break;
-          case "from_user": cell.setCellValue(tweet.getUser().getName()); break;
-          case "from_user_id": cell.setCellValue(tweet.getUser().getId()); cell.setCellType(HSSFCell.CELL_TYPE_NUMERIC); break;
-          case "in_reply_to": cell.setCellValue(tweet.getInReplyToScreenName()); break;
-          case "text": cell.setCellValue(tweet.getText()); break;
-          case "geo": 
-        	  	GeoLocation geo = tweet.getGeoLocation(); 
-        	  	if (geo != null) cell.setCellValue(geo.getLatitude()+","+geo.getLongitude()); 
-        	  	break;
-          case "geo_text": 
-        	  	GeoLocation g = tweet.getGeoLocation(); 
-          		if (g != null) {
-          			GeocoderRequest request = new GeocoderRequest();
-          			request.setLocation(new LatLng(Double.toString(g.getLatitude()), Double.toString(g.getLongitude())));
-          			request.setLanguage("nl");
-          			GeocodeResponse response = geocoder.geocode(request);
-          			if(response.getStatus().equals(GeocoderStatus.OK) && !response.getResults().isEmpty()) {
-          		        GeocoderResult result = response.getResults().iterator().next();
-          		        cell.setCellValue(result.getFormattedAddress()); 
-          			}
-          		} 
-          		break;
-          }
-          
-          colnr++;
-        }
-        ids.add(id);
-        currentRow++;
-	}
 
-	public void write(String filename) throws FileNotFoundException {
+    public void addTweet(Status tweet) {
+        SimpleTweet simple = new SimpleTweet();
+        simple.id = tweet.getId();
+        simple.createdAt = tweet.getCreatedAt();
+        simple.userName = tweet.getUser().getName(); 
+        simple.userId = tweet.getUser().getId(); 
+        simple.inReplyToName = tweet.getInReplyToScreenName(); 
+        simple.text = tweet.getText(); 
+        GeoLocation geo = tweet.getGeoLocation(); 
+        if (geo != null) {
+            simple.latitude = geo.getLatitude();
+            simple.latitude = geo.getLongitude(); 
+        } 
+        addTweet(simple);
+    }
+
+    public void write(String filename) throws FileNotFoundException {
         write(new FileOutputStream(filename));
-	}
-	
-	public void write(OutputStream out) {
+    }
+    
+    public void write(OutputStream out) {
         try {
             wb.write(out);
             out.close();
           } catch (IOException e) {
                     e.printStackTrace();
           }
-	}
+    }
 
-	public void write() throws FileNotFoundException {
-		write(filename);
-	}
-	
-	public String getFilename() {
-		return filename;
-	}
+    public void write() throws FileNotFoundException {
+        write(filename);
+    }
+    
+    public String getFilename() {
+        return filename;
+    }
 }

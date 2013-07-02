@@ -1,0 +1,64 @@
+@(terms: List[String])
+
+@termField(name: String, value: String, className: String = "term") = {
+    <div class="clearfix @className">
+    <label for="@name">Zoekterm</label>
+    <input type="text" name="@name" value="@value"/>
+    <a class="removeTerm btn danger">Verwijder</a>
+    </div>
+}
+
+@main("Continu") {
+    <h1>Bewerk zoektermen voor continue tweets</h1>
+
+    @helper.form(action = routes.Streams.start(), 'id -> "form") {
+    <fieldset class="fieldset">
+        <legend>Zoektermen</legend>
+
+        @for((t,i) <- terms.zipWithIndex) {
+            @termField("terms["+i+"]", t)
+        }
+        @* hidden template *@
+        @termField("terms[x]", "", className = "term_template")
+
+        <div class="clearfix">
+            <div class="input">
+                <a class="addTerm btn success">Zoekterm toevoegen</a>
+            </div>
+        </div>
+
+        <div class="actions">
+            <input type="submit" value="Opslaan" class="btn primary"> of 
+            <a href="@routes.Application.index()" class="btn">Annuleren</a> 
+        </div>
+        @*@helper.inputText(streamForm("terms[1]"), '_label -> "Zoekterm")
+        @helper.inputText(streamForm("terms[2]"), '_label -> "Zoekterm")
+*@
+    }
+
+   <script type="text/javascript" charset="utf-8">
+        $(document).on('click','.removeTerm', function(e) {
+            $(this).parents('.term').remove()
+            renumber()
+        });
+
+        $(document).on('click', '.addTerm', function(e) {
+            var template = $('.term_template')
+            template.before('<div class="clearfix term">' + template.html() + '</div>')
+            renumber()
+        });
+
+        $('#form').submit(function() {
+            $('.term_template').remove()
+        });
+
+        var renumber = function() {
+            $('.term input').each(function(i) {
+                $(this).attr('name', $(this).attr('name').replace(/terms\[.+\]/g, 'terms[' + i + ']'))
+            })
+        }
+
+   </script>
+
+
+}

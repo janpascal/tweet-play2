@@ -23,7 +23,20 @@ import models.*;
 import tweet.Config;
 import tweet.Main;
 
+import twitter4j.conf.ConfigurationBuilder;
+
 public class Application extends Controller {
+
+  public static twitter4j.conf.Configuration getTwitterConfiguration() {
+         Configuration appConf = Play.application().configuration();
+          ConfigurationBuilder cb = new ConfigurationBuilder();
+          cb.setDebugEnabled(true)
+            .setOAuthConsumerKey(appConf.getString("twitter4j.oauth.consumerKey"))
+            .setOAuthConsumerSecret(appConf.getString("twitter4j.oauth.consumerSecret"))
+            .setOAuthAccessToken(appConf.getString("twitter4j.oauth.accessToken"))
+            .setOAuthAccessTokenSecret(appConf.getString("twitter4j.oauth.accessTokenSecret"));
+          return cb.build();
+  }
 
     public static Result index() {
         return ok(index.render("Your new application is ready."));
@@ -62,7 +75,7 @@ public class Application extends Controller {
                 }
               }
             });
-            File[] files = main.runConfig(config, job.jobPath().toString());
+            File[] files = main.runConfig(getTwitterConfiguration(), config, job.jobPath().toString());
             for(File f: files) {
               job.addExcelResult(f);
             }
