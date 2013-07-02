@@ -1,0 +1,41 @@
+@(tweets: List[Tweet])
+
+@main("Resultaten continu zoeken") {
+    <h1>Resultaten Continue zoeken</h1>
+
+    <div class="controls">
+   <a class="btn success" href="@routes.Streams.editTerms()">Pas zoektermen aan</a>
+
+   <a class="btn success" href="@routes.Streams.download()">Download resultaten</a>
+   </div>
+    <table> 
+    <tr>
+    <th></th>
+    <th>id</th>
+    <th>datum</th>
+    <th>userid</th>
+    <th>username</th>
+    <th>inreplyto</th>
+    <th>text</th>
+    <th>location</th>
+    </tr>
+	@for(tweet <- tweets) {
+          <tr>
+          <td>
+                @helper.form(action = routes.Streams.deleteTweet(tweet.id)) {
+                    <input type="submit" value="Wis" class="btn danger">
+                }
+          </td> 
+	  <td>@tweet.id</td>
+          <td>@if(tweet.date!=null) {
+                        @tweet.date.format("dd/MM/yyyy hh:mm:ss")
+                  } else { &mdash; } </td>
+	  <td>@tweet.fromUserId</td>
+	  <td>@tweet.fromUser</td>
+	  <td>@tweet.inReplyTo</td>
+	  <td>@tweet.text</td>
+	  <td>@tweet.location()</td>
+	      </tr>
+	} 
+    </table>
+}

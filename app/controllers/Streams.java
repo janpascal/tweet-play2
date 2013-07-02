@@ -105,6 +105,17 @@ public class Streams extends Controller
      return ok(edit_stream_form.render(terms));
    }
 
+   public static Result list() {
+     List<Tweet> tweets = Tweet.find.all();
+     return ok(stream_result_list.render(tweets));
+   }
+
+   public static Result deleteTweet(Long id) {
+     Tweet.find.ref(id).delete();
+     flash("success", "Tweet deleted");
+     return redirect(routes.Streams.list());
+   }
+
    public static void startConnection() {
        StreamConfig config = getConfig();
         try {
@@ -146,7 +157,7 @@ public class Streams extends Controller
             Logger.info("Error starting twitter stream", e);
             flash("error", "Error starting Twitter stream" +e.getMessage());
         }
-        return redirect(routes.Application.index());
+        return redirect(routes.Streams.list());
     }
 
     public static Result download() {

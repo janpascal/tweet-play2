@@ -22,6 +22,8 @@ POST    /deletejob                  controllers.Application.deleteJob(id: Long)
 GET     /streams/editterms          controllers.Streams.editTerms()
 POST    /streams/start              controllers.Streams.start()
 GET     /streams/excel              controllers.Streams.download()
+GET     /streams/list               controllers.Streams.list()
+POST    /streams/deletetweet        controllers.Streams.deleteTweet(id: Long)
 
 #javascript routes
 GET    /assets/javascripts/routes      controllers.Application.javascriptRoutes()
