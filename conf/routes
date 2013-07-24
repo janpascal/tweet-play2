@@ -13,9 +13,10 @@ POST    /uploadconfig               controllers.Application.uploadConfig()
 GET     /logLines             controllers.Application.logLines(last: Integer)
 
 GET     /joblist                    controllers.Application.showJobs()
-GET     /downloadexcel              controllers.Application.downloadExcel(jobId: Long, xlfile: String)
-GET     /downloadzip                controllers.Application.downloadZip(jobId: Long)
-GET     /downloadconfig             controllers.Application.downloadConfig(jobId: Long)
+GET     /downloadexcel/:jobId/:xlfile              controllers.Application.downloadExcel(jobId: Long, xlfile: String)
+GET     /downloadzip/:jobId                controllers.Application.downloadZip(jobId: Long)
+GET     /downloadconfig/:jobId             controllers.Application.downloadConfig(jobId: Long)
+GET     /downloadlog/:jobId                controllers.Application.downloadLog(jobId: Long)
 POST    /deletejob                  controllers.Application.deleteJob(id: Long)
 
 # Streams

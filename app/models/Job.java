@@ -43,6 +43,10 @@ public class Job extends Model {
     @Transient
     private Path zipfile;
     @Transient
+    private Path logfile;
+    @Transient
+    private PrintWriter logwriter;
+    @Transient
     private boolean loaded = false;
     @Transient
     private Config config;
@@ -52,6 +56,7 @@ public class Job extends Model {
       loaded = false;
       zipfile = null;
       inifile = null;
+      logfile = null;
       datum = new Date();
     }
 
@@ -112,6 +117,7 @@ public class Job extends Model {
          addToZip(out, f);
       }
       addToZip(out, getInifile());
+      addToZip(out, getLogfile());
       out.close();
       loaded = true;
       return zipfile;
@@ -128,6 +134,28 @@ public class Job extends Model {
       if (inifile!=null) return inifile;
       inifile = jobPath().resolve("config.ini");
       return inifile;
+    }
+
+    public Path getLogfile() throws IOException {
+      if (logfile!=null) return logfile;
+      logfile = jobPath().resolve("log.txt");
+      return logfile;
+    }
+
+    private PrintWriter getLogWriter() throws IOException {
+      if (logwriter!=null) return logwriter;
+      Path path = getLogfile();
+      logwriter = new PrintWriter(path.toFile());
+      return logwriter;
+    }
+
+    public void addLogLine(String line) throws IOException {
+      getLogWriter().println(line);
+    }
+
+    public void closeLog() throws IOException {
+      getLogWriter().flush();
+      getLogWriter().close();
     }
 
     public void addToZip(ZipOutputStream out, Path f) throws IOException {

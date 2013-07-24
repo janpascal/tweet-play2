@@ -111,7 +111,7 @@ public class Streams extends Controller
    }
 
    public static Result list() {
-     List<Tweet> tweets = Tweet.find.all();
+     List<Tweet> tweets = Tweet.find.where().orderBy("date desc").findList();
      return ok(stream_result_list.render(tweets));
    }
 

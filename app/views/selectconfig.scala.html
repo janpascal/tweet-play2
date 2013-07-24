@@ -1,6 +1,5 @@
 <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
 
-
 @main("Selecteer configuratiebestand") {
     <h1>Selecteer configuratiebestand</h1>
 
@@ -9,12 +8,12 @@
         <input type="file" name="bestand">
         
         <p>
-            <input type="submit" class="btn primary" value="Start">
+            <input type="submit" class="btn btn-primary" value="Start">
         </p>
         
     }
 
-<div id="log" class="modal"/>
+<div id="log" class="modal pre-scrollable invisible"/>
 }
 
 <script type="text/javascript" charset="utf-8">
@@ -28,6 +27,7 @@ var updateLog=function() {
           for(var line in data.messages) {
             $("#log").append("<p>"+data.messages[line]+"</p>");
             $("#log").animate({scrollTop: 10000}, 800);
+            $("#log").removeClass('invisible');
           }
         },
         error: function() {

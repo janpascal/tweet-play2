@@ -62,7 +62,7 @@ public class Application extends Controller {
           String fileName = bestand.getFilename();
           File file = bestand.getFile();
           try {
-            Job job = new Job();
+            final Job job = new Job();
             job.save();
             job.addConfig(file);
             Config config = new Config(file);
@@ -72,6 +72,11 @@ public class Application extends Controller {
                 Logger.info(line); 
                 synchronized(messages) {
                     messages.add(line);
+                    try {
+                        job.addLogLine(line);
+                    } catch (IOException e) {
+                      Logger.info("Error writing log line ", e);
+                    }
                 }
               }
             });
@@ -80,6 +85,7 @@ public class Application extends Controller {
               job.addExcelResult(f);
             }
             job.update();
+            job.closeLog();
             synchronized(messages) {
                 messages = new ArrayList<String>();
             }
@@ -157,6 +163,22 @@ public class Application extends Controller {
             return ok(ini.toFile());
         } catch (IOException e) {
             Logger.info("Exception sending zipfile", e);
+            return ok("Exception opening file");
+        }
+    }
+
+    public static Result downloadLog(Long jobId) {
+        Job job = Job.find.byId(jobId);
+        try {
+            Path log = job.getLogfile();
+            if (!Files.exists(log)) {
+              return ok("File does not exist");
+            }
+            response().setContentType("application/x-download");  
+            response().setHeader("Content-disposition","attachment; filename=job"+jobId+"-log.txt"); 
+            return ok(log.toFile());
+        } catch (IOException e) {
+            Logger.info("Exception sending logfile", e);
             return ok("Exception opening file");
         }
     }
@@ -272,8 +294,9 @@ public class Application extends Controller {
   }
 
   public static Result showJobs() {
-    List<Job> jobs = Job.find.all();
-        return ok(resultlist.render(jobs));
+      List<Job> jobs = Job.find.where().orderBy("datum desc").findList();
+
+      return ok(resultlist.render(jobs));
   }
 }
 

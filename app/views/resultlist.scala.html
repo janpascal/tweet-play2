@@ -2,7 +2,7 @@
 
 @main("Resultaten") {
     <h1>Resultaten</h1>
-    <table> 
+    <table class="table table-striped"> 
     <tr>
     <th></th>
     <th>id</th>
@@ -11,12 +11,13 @@
     <th>resultaten</th>
     <th>zip</th>
     <th>configuratie</th>
+    <th>log</th>
     </tr>
 	@for(job <- jobs) {
           <tr>
           <td>
                 @helper.form(action = routes.Application.deleteJob(job.id)) {
-                    <input type="submit" value="Wis" class="btn danger">
+                    <input type="submit" value="Wis" class="btn btn-danger">
                 }
           </td>
 	    <td>@job.id</td>
@@ -37,10 +38,13 @@
              <td>
                <a href="@routes.Application.downloadConfig(job.id)">config.ini</a>
              </td>
+             <td>
+               <a href="@routes.Application.downloadLog(job.id)">log.txt</a>
+             </td>
 
 	      </tr>
 	} 
     </table>
-   <a class="btn success" href="@routes.Application.selectConfig()">Nieuwe
+   <a class="btn btn-success" href="@routes.Application.selectConfig()">Nieuwe
    zoekactie</a>
 }
