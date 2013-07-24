@@ -5,7 +5,7 @@ import play.Project._
 object ApplicationBuild extends Build {
 
   val appName         = "tweet-play2"
-  val appVersion      = "1.5.0"
+  val appVersion      = "1.5.1"
 
   val appDependencies = Seq(
     // Add your project dependencies here,
