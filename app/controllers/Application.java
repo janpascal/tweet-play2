@@ -132,13 +132,13 @@ public class Application extends Controller {
     public static Result downloadZip(Long jobId) {
         Job job = Job.find.byId(jobId);
         try {
-            Path xl = job.jobPath().resolve("results.zip");
-            if (!Files.exists(xl)) {
+            Path zip = job.getZip();
+            if (!Files.exists(zip)) {
               return ok("File does not exist");
             }
             response().setContentType("application/x-download");  
             response().setHeader("Content-disposition","attachment; filename=job"+jobId+"-results.zip"); 
-            return ok(xl.toFile());
+            return ok(zip.toFile());
         } catch (IOException e) {
             Logger.info("Exception sending zipfile", e);
             return ok("Exception opening file");

@@ -108,10 +108,10 @@ public class Job extends Model {
 
        ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipfile));
 
-       for(Path f: xls) { 
+       for(Path f: getResults()) { 
          addToZip(out, f);
       }
-      addToZip(out, inifile);
+      addToZip(out, getInifile());
       out.close();
       loaded = true;
       return zipfile;
