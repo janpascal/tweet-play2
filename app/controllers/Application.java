@@ -212,9 +212,9 @@ public class Application extends Controller {
         if(jobDescriptionForm.hasErrors()) {
             return badRequest(createJobDescriptionForm.render(jobDescriptionForm));
         }
-        System.out.println(jobDescriptionForm.toString());
-        System.out.println(jobDescriptionForm.data());
-        System.out.println(jobDescriptionForm.value().get());
+        Logger.info(jobDescriptionForm.toString());
+        Logger.info(jobDescriptionForm.data().toString());
+        Logger.info(jobDescriptionForm.value().get().toString());
         return ok(createJobDescriptionFormStep2.render(jobDescriptionForm));
     }  
 

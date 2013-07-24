@@ -20,4 +20,5 @@ twitter4j.properties
 .*.swp
 conf/db.conf
 conf/twitter4j.properties
+test-conf
 

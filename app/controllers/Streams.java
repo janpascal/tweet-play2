@@ -31,13 +31,13 @@ public class Streams extends Controller
       public TweetListener() {
       }
       public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-        System.out.println("Deletion notice");
+        Logger.info("Deletion notice");
        }
       public void  onScrubGeo(long userId, long upToStatusId) {
-        System.out.println("Scrub geo");
+        Logger.info("Scrub geo");
       }
       public void  onStallWarning(StallWarning warning) {
-        System.out.println("Stall warning");
+        Logger.info("Stall warning");
       }
       public void onStatus(twitter4j.Status status) {
           Logger.info(status.getUser().getName() + " : " + status.getText());
@@ -45,7 +45,7 @@ public class Streams extends Controller
           tweet.save();
       }
       public void  onTrackLimitationNotice(int numberOfLimitedStatuses){
-        System.out.println("Track limitation, missed " + numberOfLimitedStatuses);
+        Logger.info("Track limitation, missed " + numberOfLimitedStatuses);
       }
       public void  onException(java.lang.Exception ex) {
         ex.printStackTrace();
@@ -65,10 +65,15 @@ public class Streams extends Controller
         twitter.cleanUp();
       }
       String[] tracks = new String[terms.size()];
-      for(int i=0; i<terms.size(); i++) tracks[i] = terms.get(i);
+      StringBuffer termsString = new StringBuffer();
+      for(int i=0; i<terms.size(); i++) {
+        tracks[i] = terms.get(i);
+        if(i!=0) termsString.append(",");
+        termsString.append(terms.get(i));
+      }
       FilterQuery q = new FilterQuery().track(tracks);
       twitter.filter(q);
-      System.out.println("Starting listening for tweets...");
+      Logger.info("Starting listening for tweets using terms "+termsString.toString()+"...");
    }
 
    public static void closeConnection() {

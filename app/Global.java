@@ -19,9 +19,7 @@ public class Global extends GlobalSettings {
     @Override
     public void onStart(Application app) {
           Logger.info("Application startup...");
-          if(!Play.isDev()) {
-              Streams.startConnection();
-          }
+          Streams.startConnection();
     }
 
     @Override
