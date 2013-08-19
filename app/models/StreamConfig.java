@@ -38,6 +38,16 @@ public class StreamConfig extends Model {
     return result;
   }
 
+  public String listTermsAsString() {
+    JsonNode node = Json.parse(terms);
+    StringBuilder result = new StringBuilder();
+    for(int i=0; i<node.size(); i++) {
+      if(i>0) result.append(", ");
+      result.append(node.get(i).getTextValue());
+    }
+    return result.toString();
+  }
+
   public void putTerms(List<String> terms) {
     JsonNode result = Json.toJson(terms);
     this.terms = Json.stringify(result);

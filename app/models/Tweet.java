@@ -29,6 +29,8 @@ public class Tweet extends Model {
    public Double latitude;
    public Double longitude;
 
+   public Boolean conformsToTerms;
+
   public Tweet(Status status) {
     this.id = status.getId();
     this.date = status.getCreatedAt();

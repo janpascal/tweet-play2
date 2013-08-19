@@ -2,6 +2,7 @@ package controllers;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import twitter4j.Status;
 import twitter4j.TwitterStream;
@@ -11,7 +12,10 @@ import twitter4j.StatusListener;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StallWarning;
 import twitter4j.FilterQuery;
-
+import twitter4j.URLEntity;
+import twitter4j.MediaEntity;
+import twitter4j.HashtagEntity;
+import twitter4j.UserMentionEntity;
 
 import tweet.Exporter;
 import tweet.SimpleTweet;
@@ -28,7 +32,21 @@ import views.html.*;
 public class Streams extends Controller
 {
     public static class TweetListener implements StatusListener {
-      public TweetListener() {
+      private List<String> terms;
+      private Pattern matchPattern;
+
+      public TweetListener(List<String> terms) {
+        this.terms = terms;
+        StringBuilder query = new StringBuilder();
+        for(int i=0; i<terms.size(); i++) {
+          if (i>0) query.append("|");
+          //query.append("(").append(Pattern.quote(terms.get(i))).append(")");
+          //query.append("(").append(terms.get(i)).append(")");
+          query.append(terms.get(i));
+        }
+        Logger.info("Query match pattern: "+query.toString());
+        this.matchPattern = Pattern.compile(query.toString(), Pattern.CASE_INSENSITIVE);
+        Logger.info("Query match pattern: "+matchPattern.toString());
       }
       public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
         Logger.info("Deletion notice");
@@ -42,6 +60,7 @@ public class Streams extends Controller
       public void onStatus(twitter4j.Status status) {
           Logger.info(status.getUser().getName() + " : " + status.getText());
           Tweet tweet = new Tweet(status);
+          tweet.conformsToTerms = checkMatch(status);
           tweet.save();
       }
       public void  onTrackLimitationNotice(int numberOfLimitedStatuses){
@@ -49,21 +68,107 @@ public class Streams extends Controller
       }
       public void  onException(java.lang.Exception ex) {
         ex.printStackTrace();
+        Logger.warn("Exception in Twitter Stream", ex);
+      }
+
+      protected boolean checkMatch(twitter4j.Status status) {
+          boolean result = false;
+          if(matchPattern.matcher(status.getText()).find()) result=true;
+          if(result) {
+            Logger.debug("Terms found in text");
+            Logger.debug("    \""+status.getText()+"\"");
+            return result;
+          }
+          for(URLEntity ue: status.getURLEntities()) {
+            if(matchPattern.matcher(ue.getDisplayURL()).find()) result=true;
+            if(matchPattern.matcher(ue.getExpandedURL()).find()) result=true;
+          }
+          if(result) {
+            Logger.debug("Terms found in URL entities");
+            for(URLEntity ue: status.getURLEntities()) {
+              Logger.debug("    "+ue.getDisplayURL());
+              Logger.debug("    "+ue.getExpandedURL());
+            }
+            return result;
+          }
+          for(URLEntity ue: status.getMediaEntities()) {
+            if(matchPattern.matcher(ue.getDisplayURL()).find()) result=true;
+            if(matchPattern.matcher(ue.getExpandedURL()).find()) result=true;
+          }
+          if(result) {
+            Logger.debug("Terms found in Media entities");
+            for(URLEntity ue: status.getMediaEntities()) {
+              Logger.debug("    "+ue.getDisplayURL());
+              Logger.debug("    "+ue.getExpandedURL());
+            }
+            return result;
+          }
+          for(HashtagEntity he: status.getHashtagEntities()) {
+            if(matchPattern.matcher(he.getText()).find()) result=true;
+          }
+          if(result) {
+            Logger.debug("Terms found in Hashtag entities");
+            for(HashtagEntity he: status.getHashtagEntities()) {
+              Logger.debug("    "+he.getText());
+            }
+            return result;
+          }
+          for(UserMentionEntity me: status.getUserMentionEntities()) {
+            if(matchPattern.matcher(me.getScreenName()).find()) result=true;
+          }
+          if(result) {
+            Logger.debug("Terms found in User mention entities");
+            for(UserMentionEntity me: status.getUserMentionEntities()) {
+              Logger.debug("    "+me.getScreenName());
+            }
+            return result;
+          }
+          Logger.debug("Terms NOT FOUND");
+            Logger.debug("    Terms not found in URL entities");
+            for(URLEntity ue: status.getURLEntities()) {
+              Logger.debug("    "+ue.getDisplayURL());
+              Logger.debug("    "+ue.getExpandedURL());
+            }
+            Logger.debug("    Terms not found in Media entities");
+            for(URLEntity ue: status.getMediaEntities()) {
+              Logger.debug("    "+ue.getDisplayURL());
+              Logger.debug("    "+ue.getExpandedURL());
+            }
+            Logger.debug("    Terms not found in Hashtag entities");
+            for(HashtagEntity he: status.getHashtagEntities()) {
+              Logger.debug("    "+he.getText());
+            }
+            Logger.debug("    Terms not found in User mention entities");
+            for(UserMentionEntity me: status.getUserMentionEntities()) {
+              Logger.debug("    "+me.getScreenName());
+            }
+          return result;
       }
     }
 
    private static TwitterStream twitter = null;
 
    private static void startStream(List<String> terms) throws TwitterException {
+     /*
      if (twitter == null) {
         twitter4j.conf.Configuration tconf = Application.getTwitterConfiguration();
         TwitterStreamFactory tf = new TwitterStreamFactory(tconf);
         twitter = tf.getInstance();
-        StatusListener l = new TweetListener();
+        StatusListener l = new TweetListener(terms);
         twitter.addListener(l);
       } else {
         twitter.cleanUp();
       }
+      */
+      if(twitter!=null) {
+        twitter.cleanUp();
+      }
+      twitter4j.conf.Configuration tconf = Application.getTwitterConfiguration();
+      TwitterStreamFactory tf = new TwitterStreamFactory(tconf);
+      twitter = tf.getInstance();
+      StatusListener l = new TweetListener(terms);
+      twitter.addListener(l);
+
       String[] tracks = new String[terms.size()];
       StringBuffer termsString = new StringBuffer();
       for(int i=0; i<terms.size(); i++) {
@@ -111,8 +216,10 @@ public class Streams extends Controller
    }
 
    public static Result list() {
-     List<Tweet> tweets = Tweet.find.where().orderBy("date desc").findList();
-     return ok(stream_result_list.render(tweets));
+     List<Tweet> tweets = Tweet.find.where().eq("conformsToTerms",true).orderBy("date desc").findList();
+     StreamConfig config = getConfig();
+     String terms = config.listTermsAsString();
+     return ok(stream_result_list.render(tweets, terms));
    }
 
    public static Result deleteTweet(Long id) {
