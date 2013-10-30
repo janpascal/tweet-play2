@@ -14,10 +14,21 @@ import twitter4j.conf.Configuration;
 
 public class Main {
 
+    public interface Handler {
+	void handleNumber(int numTweets);
+        void handleStatus(boolean waiting, int secondsToWait);
+    }
+	
       private List<LogCallback> loggers;
+      private List<Handler> handlers;
 
       public Main() {
           loggers = new ArrayList<LogCallback>();
+          handlers = new ArrayList<Handler>();
+      }
+
+      public void addHandler(Handler handler) {
+        handlers.add(handler);
       }
 
       public void addLogger(LogCallback logger) {
@@ -38,6 +49,10 @@ public class Main {
                          Main.this.log(line);
                     }
                 });
+
+                for(Handler handler: handlers) {
+                    fetcher.addMainHandler(handler);
+                }
 		
 		List<Exporter> exporters = new ArrayList<Exporter>();
 		for(String filename: config.getExcelSet()) {
@@ -55,8 +70,10 @@ public class Main {
 		}
 
 		for(String queryName: config.getQueryNames()) {
+                        log("Running query "+queryName);
 			fetcher.fetchAll(queryName, config.getQueryForName(queryName));
 		}
+                log("Done running queries, starting export");
 
                 File[] result = new File[exporters.size()];
 
@@ -67,10 +84,13 @@ public class Main {
 			} catch (FileNotFoundException ex) {
 				// TODO Auto-generated catch block
 				ex.printStackTrace();
+                                log("Caught exception writing output file");
+                                log(ex.toString());
 			}
                         result[i] = new File(e.filename);
                         i++;
-        }
+                }
+                log("Done writing data to excel files");
         return result;
 	}
 }

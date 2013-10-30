@@ -50,6 +50,61 @@ public class Application extends Controller {
     static List<String> messages = new ArrayList<String>();
 
 
+    private static void runJob(final Job job) {
+        Main main = new Main();
+        main.addLogger(new tweet.LogCallback() {
+          public void log(String line) {
+            Logger.info(line); 
+            synchronized(messages) {
+                messages.add(line);
+            }
+            try {
+                job.addLogLine(line);
+            } catch (IOException e) {
+              Logger.info("Error writing log line ", e);
+            }
+          }
+        });
+        main.addHandler(
+            new Main.Handler() {
+                public void handleNumber(int numTweets) {
+                    job.numTweets += numTweets;
+                    job.update();
+                }
+                public void handleStatus(boolean waiting, int secondsToWait) {
+                    if(waiting) {
+                        job.status = Job.STATUS_WAITING;
+                        job.secondsToWait = secondsToWait;
+                    } else {
+                        job.status = Job.STATUS_RUNNING;
+                        job.secondsToWait = 0;
+                    }
+                    job.update();
+                }
+        });
+        try {
+            File[] files = main.runConfig(getTwitterConfiguration(), job.getConfig(), job.jobPath().toString());
+            Logger.info("Adding result files to job");
+            for(File f: files) {
+              job.addExcelResult(f);
+            }
+            job.status = Job.STATUS_DONE;
+            job.update();
+            job.closeLog();
+        } catch (Exception e) {
+            Logger.info("Caught exception fetching tweets", e);
+            try {
+                job.addLogLine("Caught exception fetching tweets");
+                job.addLogLine(e.toString());
+            } catch (IOException e2) {
+                Logger.info("Caught IOException writing to job log", e);
+            }
+        }
+        synchronized(messages) {
+            messages = new ArrayList<String>();
+        }
+    }
+
     public static Result uploadConfig() {
         RequestBody mainbody = request().body();
         MultipartFormData body = mainbody.asMultipartFormData();
@@ -61,46 +116,26 @@ public class Application extends Controller {
         if (bestand != null) {
           String fileName = bestand.getFilename();
           File file = bestand.getFile();
+          final Job job = new Job();
+          job.save();
           try {
-            final Job job = new Job();
-            job.save();
-            job.addConfig(file);
-            Config config = new Config(file);
-            Main main = new Main();
-            main.addLogger(new tweet.LogCallback() {
-              public void log(String line) {
-                Logger.info(line); 
-                synchronized(messages) {
-                    messages.add(line);
-                    try {
-                        job.addLogLine(line);
-                    } catch (IOException e) {
-                      Logger.info("Error writing log line ", e);
-                    }
-                }
-              }
-            });
-            File[] files = main.runConfig(getTwitterConfiguration(), config, job.jobPath().toString());
-            for(File f: files) {
-              job.addExcelResult(f);
-            }
-            job.update();
-            job.closeLog();
-            synchronized(messages) {
-                messages = new ArrayList<String>();
-            }
-            /*
-            Path zip = job.getZip();
-            response().setContentType("application/x-download");  
-            response().setHeader("Content-disposition","attachment; filename=results.zip"); 
-            return ok(zip.toFile());
-            */
-            return redirect(routes.Application.showJobs());
+              job.addConfig(file);
           } catch (Exception e) {
-            e.printStackTrace();
-            flash("error", "File not found "+e.getMessage());
-            return redirect(routes.Application.index());    
+              job.status = Job.STATUS_FAILED; // failed
+              flash("error", "Error reading config file");
+              return redirect(routes.Application.index());    
           }
+          job.update();
+
+          Thread thread = new Thread() {
+              @Override
+              public void run() {
+                  runJob(job);
+              }
+          };
+          thread.start();
+
+          return redirect(routes.Application.showJobs());
         } else {
           flash("error", "Missing file");
           return redirect(routes.Application.index());    
@@ -117,6 +152,22 @@ public class Application extends Controller {
           }
       }
       return ok(result);
+    }
+
+    public static Result getJobStatus(Long id) {
+        ObjectNode result = Json.newObject();
+        Job job = Job.find.byId(id);
+        if (job==null) return notFound();
+        result.put("id", id);
+        result.put("status", job.statusString());
+        result.put("num_tweets", job.numTweets);
+        if (job.status==null) { 
+          result.put("finished", true);
+        } else {
+          result.put("finished", (job.status==Job.STATUS_DONE || job.status==Job.STATUS_FAILED));
+        }
+      
+        return ok(result);
     }
 
     public static Result downloadExcel(Long jobId, String xlfile) {
@@ -288,7 +339,8 @@ public class Application extends Controller {
     return ok(
       Routes.javascriptRouter("jsRoutes",
         // Routes
-        controllers.routes.javascript.Application.logLines()
+        controllers.routes.javascript.Application.logLines(),
+        controllers.routes.javascript.Application.getJobStatus()
       )
     );
   }

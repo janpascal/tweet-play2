@@ -36,6 +36,18 @@ public class Job extends Model {
 
     public Date datum;
 
+    public Long numTweets;
+
+    public Integer status;
+
+    public static final int STATUS_INIT = 0;
+    public static final int STATUS_RUNNING = 1;
+    public static final int STATUS_WAITING = 2;
+    public static final int STATUS_FAILED = 3;
+    public static final int STATUS_DONE = 4;
+
+    public Integer secondsToWait;
+
     @Transient
     private Path inifile;
     @Transient
@@ -57,6 +69,9 @@ public class Job extends Model {
       zipfile = null;
       inifile = null;
       logfile = null;
+      status = STATUS_INIT;
+      numTweets = 0L;
+      secondsToWait = 0;
       datum = new Date();
     }
 
@@ -151,6 +166,7 @@ public class Job extends Model {
 
     public void addLogLine(String line) throws IOException {
       getLogWriter().println(line);
+      getLogWriter().flush();
     }
 
     public void closeLog() throws IOException {
@@ -203,6 +219,18 @@ public class Job extends Model {
          }
      });
       super.delete();
+    }
+
+    public String statusString() {
+        if(status==null) return "Unknown";
+        switch (status) {
+            case STATUS_INIT: return "Starting";
+            case STATUS_RUNNING: return "Running";
+            case STATUS_WAITING: return "Waiting ("+secondsToWait+"s)";
+            case STATUS_FAILED: return "Failed";
+            case STATUS_DONE: return "Done";
+            default: return "Unknown";
+        }
     }
  
     public static Model.Finder<Long,Job> find = 

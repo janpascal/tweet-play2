@@ -45,6 +45,7 @@ public class APIFetcher {
 	}
 	
 	private List<Handler> handlers;
+	private List<Main.Handler> mainHandlers;
         private List<LogCallback> loggers;
 	
 	public APIFetcher(Configuration twitterConfiguration, int pageSize, int maxPages) {
@@ -61,11 +62,16 @@ public class APIFetcher {
 	
 	private void init() {
 		this.handlers = new ArrayList<Handler>();
+		this.mainHandlers = new ArrayList<Main.Handler>();
                 this.loggers = new ArrayList<LogCallback>();
 	}
 	
 	public void addHandler(Handler handler) {
 		this.handlers.add(handler);
+	}
+
+	public void addMainHandler(Main.Handler handler) {
+		this.mainHandlers.add(handler);
 	}
 
         public void addLogger(LogCallback logger) {
@@ -77,13 +83,43 @@ public class APIFetcher {
                 logger.log(line);
             }
         }
+
+        public void handleNumber(int numTweets) {
+            for (Main.Handler handler: mainHandlers) {
+                handler.handleNumber(numTweets);
+            }
+        }
+	
+        public void handleJobStatus(boolean waiting, int secondsToWait) {
+            for (Main.Handler handler: mainHandlers) {
+                handler.handleStatus(waiting, secondsToWait);
+            }
+        }
 	
 	public void fetchAll(String queryName, String terms) throws TwitterException {
 
           TwitterFactory tf = new TwitterFactory(twitterConfiguration);
           Twitter twitter = tf.getInstance();
 
-          RateLimitStatus rateStatus = twitter.getRateLimitStatus("search").get("/search/tweets");
+          RateLimitStatus rateStatus = null;
+          while (rateStatus==null) {
+             try {
+                rateStatus = twitter.getRateLimitStatus("search").get("/search/tweets");
+             } catch (TwitterException e) {
+                 log("twitter.getRateLimit exception, error code="+e.getErrorCode()+": "+e.getErrorMessage());
+                 if (e.getErrorCode()!=130) throw e;
+                 log("Got over capacity message, sleeping for five seconds, then trying again");
+                 for(int i=0; i<5; i++) {
+                   handleJobStatus(true, 5-i);
+                   try {
+                       Thread.sleep(1000);
+                   } catch (InterruptedException e2) {
+                       log("Wait interrupted "+e2.toString());
+                   }
+                 }
+                 handleJobStatus(false, 0);
+             }
+          }
           int remaining = rateStatus.getRemaining();
 
           long maxId=-1;
@@ -91,30 +127,66 @@ public class APIFetcher {
 	  for( int k=0; k<maxPages; k++ ) {
              //query.setUntil("2013-06-06");
              while (remaining<10) {
-                 rateStatus = twitter.getRateLimitStatus("search").get("/search/tweets");
-                 log("RateLimit limit: "+rateStatus.getLimit());
-                 log("RateLimit remaining: "+rateStatus.getRemaining());
-                 log("RateLimit seconds to reset: "+rateStatus.getSecondsUntilReset());
-                 long secondsToWait = rateStatus.getSecondsUntilReset();
+                 // log("RateLimit limit: "+rateStatus.getLimit());
+                 // log("RateLimit remaining: "+rateStatus.getRemaining());
+                 // log("RateLimit seconds to reset: "+rateStatus.getSecondsUntilReset());
+                 int secondsToWait = rateStatus.getSecondsUntilReset();
                  log("Running into Twitter rate limiting, need to wait "+secondsToWait+" seconds...");
-                 if(secondsToWait>60) secondsToWait=59;
-                 try {
-                     Thread.sleep((1+secondsToWait)*1000);
-                 } catch (InterruptedException e) {
-                     log("Wait interrupted "+e.toString());
-                     break;
+                 for(int i=0; i<60 && secondsToWait>=0; i++) {
+                     try {
+                         handleJobStatus(true, secondsToWait);
+                         Thread.sleep(1000);
+                         secondsToWait--;
+                     } catch (InterruptedException e) {
+                         log("Wait interrupted "+e.toString());
+                         break;
+                     }
+                 }
+                 rateStatus = null;
+                 while (rateStatus==null) {
+                     try {
+                        rateStatus = twitter.getRateLimitStatus("search").get("/search/tweets");
+                     } catch (TwitterException e) {
+                         log("twitter.getRateLimit exception, error code="+e.getErrorCode()+": "+e.getErrorMessage());
+                         if (e.getErrorCode()!=130) throw e;
+                         log("Got over capacity message, sleeping for five seconds, then trying again");
+                         for(int i=0; i<5; i++) {
+                             try {
+                                 handleJobStatus(true, secondsToWait+5-i);
+                                 Thread.sleep(1000);
+                             } catch (InterruptedException e2) {
+                                 log("Wait interrupted "+e2.toString());
+                             }
+                         }
+                     }
                  }
                  rateStatus = twitter.getRateLimitStatus("search").get("/search/tweets");
                  remaining = rateStatus.getRemaining();
              }
+             handleJobStatus(false, 0);
              remaining--;
              Query query = new Query(terms).count(pageSize).resultType("recent");
 	     if(maxId>0) {
 			    query.setMaxId(maxId);
 			}
-             log("Query: "+query.toString());
-	     QueryResult result = twitter.search(query);
+             QueryResult result = null;
+             while (result == null) {
+                 log("Query: "+query.toString());
+                 try {
+                    result = twitter.search(query);
+                 } catch (TwitterException e) {
+                     log("twitter.search exception, error code="+e.getErrorCode()+": "+e.getErrorMessage());
+                     if (e.getErrorCode()!=130) throw e;
+                     log("Got over capacity message, sleeping for five secondsi, then trying again");
+                     try {
+                         Thread.sleep(5000);
+                     } catch (InterruptedException e2) {
+                         log("Wait interrupted "+e2.toString());
+                     }
+                 }
+             }
 	     log("Aantal resultaten: " +result.getTweets().size());
+             handleNumber(result.getTweets().size());
 
 	     long lastId=Long.MAX_VALUE;
              for (Status status : result.getTweets()) {
@@ -123,7 +195,7 @@ public class APIFetcher {
                 handleTweet(queryName, status);
                 //System.out.println(id+"@" + status.getUser().getScreenName() + ":" + status.getCreatedAt() +":"+ status.getText());
              }
-  	     System.err.println("last id: "+lastId);
+  	     log("last id: "+lastId);
              maxId = lastId;
 			try {
 				Thread.sleep(100);
@@ -136,12 +208,12 @@ public class APIFetcher {
 			//	// ignore
 			//}
 			if (maxId>=previousLastId) {
-				System.err.println("Last id not descending, quitting");
+				log("Last id not descending, quitting");
 				break;
 			}
 			previousLastId=maxId;
 	        if (k>=maxPages-1) {
-	            System.err.println("Warning, more than "+maxPages+" results, ignoring the rest!!!");
+	            log("Warning, more than "+maxPages+" results, ignoring the rest!!!");
 	        }
 		}
 	}

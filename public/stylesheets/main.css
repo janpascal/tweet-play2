@@ -77,3 +77,9 @@ body {
 .term_template {
     display: none;
 }
+/*
+tr.followme > #num {
+    color: #ff0000;
+    text-color: #ff0000;
+}
+*/

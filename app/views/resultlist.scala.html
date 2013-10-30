@@ -1,5 +1,7 @@
 @(jobs: List[Job])
 
+<script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
+
 @main("Resultaten") {
     <h1>Resultaten</h1>
     <table class="table table-striped"> 
@@ -8,19 +10,22 @@
     <th>id</th>
     <th>datum</th>
     <th>zoekvragen</th>
+    <th>volg</th>
+    <th>aantal tweets</th>
+    <th>status</th>
     <th>resultaten</th>
     <th>zip</th>
     <th>configuratie</th>
     <th>log</th>
     </tr>
-	@for(job <- jobs) {
-          <tr>
+	@for((job,i) <- jobs.zipWithIndex) {
+          <tr @if(job.status!=null && job.status!=Job.STATUS_DONE && job.status!=Job.STATUS_FAILED){class="followme"} id="@job.id">
           <td>
                 @helper.form(action = routes.Application.deleteJob(job.id)) {
                     <input type="submit" value="Wis" class="btn btn-danger">
                 }
           </td>
-	    <td>@job.id</td>
+	  <td class="id">@job.id</td>
           <td>@if(job.datum!=null) {
                         @job.datum.format("dd/MM/yyyy")
                   } else { &mdash; } </td>
@@ -28,6 +33,9 @@
                    @query 
                    @if(i != job.getQueries.size-1) { , }
                  }</td>
+	    <td class="follow"><a href="#" class="btn">Wissel</a></td>
+	    <td id="num">@job.numTweets</td>
+	    <td id="status">@job.statusString()</td>
             <td>@for( xls <- job.getResults() ) {
                    <a href="@routes.Application.downloadExcel(job.id,xls.getFileName().toString())">
                       @xls.getFileName().toString()</a>
@@ -48,3 +56,38 @@
    <a class="btn btn-success" href="@routes.Application.selectConfig()">Nieuwe
    zoekactie</a>
 }
+
+<script type="text/javascript" charset="utf-8">
+
+var updateTable=function() {
+  $(".followme").each(function(){
+    id=$(this).find(".id").text();
+    jsRoutes.controllers.Application.getJobStatus(id).ajax({
+        success: function(data) {
+          $("#"+data.id).find("#status").html(data.status);
+          $("#"+data.id).find("#num").html(data.num_tweets);
+          if(data.finished) {
+            $("#"+data.id).removeClass("followme");
+            if(data.status=="Done") {
+                location.reload();
+            }
+          }
+          $("#"+data.id).hide();
+          $("#"+data.id).fadeIn(100);
+        },
+        error: function() {
+          // ignore alert("Error!")
+        }
+    })
+  });
+}
+
+setInterval(function(){updateTable()},1000);
+
+$(".follow").each(function() {
+  $(this).click(function() {
+      $(this).parent().toggleClass("followme");
+  })
+});
+
+</script>
