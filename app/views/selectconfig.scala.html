@@ -1,5 +1,3 @@
-<script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
-
 @main("Selecteer configuratiebestand") {
     <h1>Selecteer configuratiebestand</h1>
 
@@ -12,30 +10,5 @@
         </p>
         
     }
-
-<div id="log" class="modal pre-scrollable invisible"/>
 }
 
-<script type="text/javascript" charset="utf-8">
-
-var previous = 0;
-
-var updateLog=function() {
-      jsRoutes.controllers.Application.logLines(previous).ajax({
-        success: function(data) {
-          previous = data.lastLine;
-          for(var line in data.messages) {
-            $("#log").append("<p>"+data.messages[line]+"</p>");
-            $("#log").animate({scrollTop: 10000}, 800);
-            $("#log").removeClass('invisible');
-          }
-        },
-        error: function() {
-          // ignore alert("Error!")
-        }
-      })
-}
-
-setInterval(function(){updateLog()},1000);
-
-</script>

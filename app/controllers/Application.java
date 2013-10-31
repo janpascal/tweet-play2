@@ -46,65 +46,6 @@ public class Application extends Controller {
         return ok(selectconfig.render());
     }
 
-    // FIXME #UGLY keep entire log in memory
-    static List<String> messages = new ArrayList<String>();
-
-
-    private static void runJob(final Job job) {
-        Main main = new Main();
-        main.addLogger(new tweet.LogCallback() {
-          public void log(String line) {
-            Logger.info(line); 
-            synchronized(messages) {
-                messages.add(line);
-            }
-            try {
-                job.addLogLine(line);
-            } catch (IOException e) {
-              Logger.info("Error writing log line ", e);
-            }
-          }
-        });
-        main.addHandler(
-            new Main.Handler() {
-                public void handleNumber(int numTweets) {
-                    job.numTweets += numTweets;
-                    job.update();
-                }
-                public void handleStatus(boolean waiting, int secondsToWait) {
-                    if(waiting) {
-                        job.status = Job.STATUS_WAITING;
-                        job.secondsToWait = secondsToWait;
-                    } else {
-                        job.status = Job.STATUS_RUNNING;
-                        job.secondsToWait = 0;
-                    }
-                    job.update();
-                }
-        });
-        try {
-            File[] files = main.runConfig(getTwitterConfiguration(), job.getConfig(), job.jobPath().toString());
-            Logger.info("Adding result files to job");
-            for(File f: files) {
-              job.addExcelResult(f);
-            }
-            job.status = Job.STATUS_DONE;
-            job.update();
-            job.closeLog();
-        } catch (Exception e) {
-            Logger.info("Caught exception fetching tweets", e);
-            try {
-                job.addLogLine("Caught exception fetching tweets");
-                job.addLogLine(e.toString());
-            } catch (IOException e2) {
-                Logger.info("Caught IOException writing to job log", e);
-            }
-        }
-        synchronized(messages) {
-            messages = new ArrayList<String>();
-        }
-    }
-
     public static Result uploadConfig() {
         RequestBody mainbody = request().body();
         MultipartFormData body = mainbody.asMultipartFormData();
@@ -127,13 +68,7 @@ public class Application extends Controller {
           }
           job.update();
 
-          Thread thread = new Thread() {
-              @Override
-              public void run() {
-                  runJob(job);
-              }
-          };
-          thread.start();
+          JobRunner.getInstance().runJob(job);
 
           return redirect(routes.Application.showJobs());
         } else {
@@ -141,18 +76,6 @@ public class Application extends Controller {
           return redirect(routes.Application.index());    
         }
       }
-
-    public static Result logLines(Integer lastLine) {
-      ObjectNode result = Json.newObject();
-      synchronized(messages) {
-          result.put("lastLine", messages.size());
-          ArrayNode jsonArray = result.putArray("messages");
-          for(int i=lastLine; i<messages.size(); i++) {
-              jsonArray.add("(" + i+") " + messages.get(i));
-          }
-      }
-      return ok(result);
-    }
 
     public static Result getJobStatus(Long id) {
         ObjectNode result = Json.newObject();
@@ -339,7 +262,6 @@ public class Application extends Controller {
     return ok(
       Routes.javascriptRouter("jsRoutes",
         // Routes
-        controllers.routes.javascript.Application.logLines(),
         controllers.routes.javascript.Application.getJobStatus()
       )
     );

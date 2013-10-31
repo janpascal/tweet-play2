@@ -124,7 +124,9 @@ public class APIFetcher {
 
           long maxId=-1;
    	  long previousLastId=Long.MAX_VALUE;
-	  for( int k=0; k<maxPages; k++ ) {
+
+	  fetch:
+          for( int k=0; k<maxPages; k++ ) {
              //query.setUntil("2013-06-06");
              while (remaining<10) {
                  // log("RateLimit limit: "+rateStatus.getLimit());
@@ -176,17 +178,29 @@ public class APIFetcher {
                     result = twitter.search(query);
                  } catch (TwitterException e) {
                      log("twitter.search exception, error code="+e.getErrorCode()+": "+e.getErrorMessage());
-                     if (e.getErrorCode()!=130) throw e;
-                     log("Got over capacity message, sleeping for five secondsi, then trying again");
-                     try {
-                         Thread.sleep(5000);
-                     } catch (InterruptedException e2) {
-                         log("Wait interrupted "+e2.toString());
+                     if (e.getErrorCode()==130) {
+                         log("Got over capacity message, sleeping for five seconds, then trying again");
+                         try {
+                             Thread.sleep(5000);
+                         } catch (InterruptedException e2) {
+                             log("Wait interrupted "+e2.toString());
+                         }
+                     } else if (e.getErrorCode()==88) {
+                         log("Got rate limit exhausted message");
+                         remaining = 0;
+                         continue fetch;
+                     } else {
+                        throw e;
                      }
                  }
              }
 	     log("Aantal resultaten: " +result.getTweets().size());
              handleNumber(result.getTweets().size());
+             if (result.getRateLimitStatus()!=null) {
+                 rateStatus = result.getRateLimitStatus();
+                 //log("Search query gave rate limit status, remaining="+rateStatus.getRemaining());
+                 remaining = rateStatus.getRemaining();
+             }
 
 	     long lastId=Long.MAX_VALUE;
              for (Status status : result.getTweets()) {

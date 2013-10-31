@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import controllers.Streams;
+import controllers.JobRunner;
 
 import com.avaje.ebean.Ebean;
 
@@ -20,6 +21,7 @@ public class Global extends GlobalSettings {
     public void onStart(Application app) {
           Logger.info("Application startup...");
           Streams.startConnection();
+          JobRunner.cleanup();
     }
 
     @Override

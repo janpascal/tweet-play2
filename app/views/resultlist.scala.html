@@ -10,7 +10,6 @@
     <th>id</th>
     <th>datum</th>
     <th>zoekvragen</th>
-    <th>volg</th>
     <th>aantal tweets</th>
     <th>status</th>
     <th>resultaten</th>
@@ -33,7 +32,6 @@
                    @query 
                    @if(i != job.getQueries.size-1) { , }
                  }</td>
-	    <td class="follow"><a href="#" class="btn">Wissel</a></td>
 	    <td id="num">@job.numTweets</td>
 	    <td id="status">@job.statusString()</td>
             <td>@for( xls <- job.getResults() ) {
@@ -41,7 +39,7 @@
                       @xls.getFileName().toString()</a>
                  }</td>
              <td>
-               <a href="@routes.Application.downloadZip(job.id)">zipfile</a>
+               <a @if(job.status!=null && job.status!=Job.STATUS_DONE){class="hide"} href="@routes.Application.downloadZip(job.id)">zipfile</a>
              </td>
              <td>
                <a href="@routes.Application.downloadConfig(job.id)">config.ini</a>
@@ -83,11 +81,5 @@ var updateTable=function() {
 }
 
 setInterval(function(){updateTable()},1000);
-
-$(".follow").each(function() {
-  $(this).click(function() {
-      $(this).parent().toggleClass("followme");
-  })
-});
 
 </script>

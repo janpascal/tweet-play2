@@ -10,7 +10,6 @@ GET     /jobDescriptions         controllers.Application.jobDescriptionList()
 GET     /selectconfig               controllers.Application.selectConfig()
 POST    /uploadconfig               controllers.Application.uploadConfig()
 
-GET     /logLines             controllers.Application.logLines(last: Integer)
 GET     /job_status/:jobId          controllers.Application.getJobStatus(jobId: Long)
 
 GET     /joblist                    controllers.Application.showJobs()

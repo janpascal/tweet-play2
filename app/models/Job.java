@@ -172,6 +172,7 @@ public class Job extends Model {
     public void closeLog() throws IOException {
       getLogWriter().flush();
       getLogWriter().close();
+      logwriter = null;
     }
 
     public void addToZip(ZipOutputStream out, Path f) throws IOException {
