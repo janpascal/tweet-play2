@@ -64,15 +64,15 @@ public class Job extends Model {
     private Config config;
 
     public Job() {
-      xls = null;
-      loaded = false;
-      zipfile = null;
-      inifile = null;
-      logfile = null;
-      status = STATUS_INIT;
-      numTweets = 0L;
-      secondsToWait = 0;
-      datum = new Date();
+        xls = null;
+        loaded = false;
+        zipfile = null;
+        inifile = null;
+        logfile = null;
+        status = STATUS_INIT;
+        numTweets = 0L;
+        secondsToWait = 0;
+        datum = new Date();
     }
 
     public void addConfig(File config) throws IOException, ConfigurationException  {
@@ -83,109 +83,109 @@ public class Job extends Model {
     }
 
     public List<String> getQueries() {
-      List<String> result = new ArrayList<String>();
-      try {
-          Config config = getConfig();
-          for( String key: config.getQueryNames() ) {
-            result.add(config.getQueryForName(key));
-          }
-      } catch (Exception e) {
-          Logger.info("IO Exception getting config", e);
-      }
-      return result;
+        List<String> result = new ArrayList<String>();
+        try {
+            Config config = getConfig();
+            for( String key: config.getQueryNames() ) {
+                result.add(config.getQueryForName(key));
+            }
+        } catch (Exception e) {
+            Logger.info("IO Exception getting config", e);
+        }
+        return result;
     }
 
     public List<Path> getResults() {
-      if(xls==null) {
-          xls = new ArrayList<Path>();
-          try {
-              File dir = jobPath().toFile();
-              FilenameFilter filter = new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                  return name.endsWith(".xls");
+        if(xls==null) {
+            xls = new ArrayList<Path>();
+            try {
+                File dir = jobPath().toFile();
+                FilenameFilter filter = new FilenameFilter() {
+                    public boolean accept(File dir, String name) {
+                        return name.endsWith(".xls");
+                    }
+                };
+                for( File f: dir.listFiles(filter)) {
+                    xls.add(f.toPath());
                 }
-              };
-              for( File f: dir.listFiles(filter)) {
-                xls.add(f.toPath());
-              }
-          } catch (IOException e) {
-              Logger.info("IO Exception getting config", e);
-          }
+            } catch (IOException e) {
+                Logger.info("IO Exception getting config", e);
+            }
 
-      }
-      return xls;
+        }
+        return xls;
     }
 
     public void addExcelResult(File excel) {
-      if (xls==null) xls = new ArrayList<Path>();
-      xls.add(excel.toPath());
+        if (xls==null) xls = new ArrayList<Path>();
+        xls.add(excel.toPath());
     }
 
     public Path getZip() throws FileNotFoundException, IOException {
-       if (zipfile!=null) return zipfile;
+        if (zipfile!=null) return zipfile;
 
-       Path zipfile = jobPath().resolve("results.zip");
+        Path zipfile = jobPath().resolve("results.zip");
 
-       ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipfile));
+        ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(zipfile));
 
-       for(Path f: getResults()) { 
-         addToZip(out, f);
-      }
-      addToZip(out, getInifile());
-      addToZip(out, getLogfile());
-      out.close();
-      loaded = true;
-      return zipfile;
+        for(Path f: getResults()) { 
+            addToZip(out, f);
+        }
+        addToZip(out, getInifile());
+        addToZip(out, getLogfile());
+        out.close();
+        loaded = true;
+        return zipfile;
     }
 
     public tweet.Config getConfig() throws IOException, ConfigurationException {
-      if (config!=null) return config;
-      Path ini = getInifile();
-      this.config = new Config(ini.toFile());
-      return this.config;
+        if (config!=null) return config;
+        Path ini = getInifile();
+        this.config = new Config(ini.toFile());
+        return this.config;
     }
 
     public Path getInifile() throws IOException {
-      if (inifile!=null) return inifile;
-      inifile = jobPath().resolve("config.ini");
-      return inifile;
+        if (inifile!=null) return inifile;
+        inifile = jobPath().resolve("config.ini");
+        return inifile;
     }
 
     public Path getLogfile() throws IOException {
-      if (logfile!=null) return logfile;
-      logfile = jobPath().resolve("log.txt");
-      return logfile;
+        if (logfile!=null) return logfile;
+        logfile = jobPath().resolve("log.txt");
+        return logfile;
     }
 
     private PrintWriter getLogWriter() throws IOException {
-      if (logwriter!=null) return logwriter;
-      Path path = getLogfile();
-      logwriter = new PrintWriter(path.toFile());
-      return logwriter;
+        if (logwriter!=null) return logwriter;
+        Path path = getLogfile();
+        logwriter = new PrintWriter(path.toFile());
+        return logwriter;
     }
 
     public void addLogLine(String line) throws IOException {
-      getLogWriter().println(line);
-      getLogWriter().flush();
+        getLogWriter().println(line);
+        getLogWriter().flush();
     }
 
     public void closeLog() throws IOException {
-      getLogWriter().flush();
-      getLogWriter().close();
-      logwriter = null;
+        getLogWriter().flush();
+        getLogWriter().close();
+        logwriter = null;
     }
 
     public void addToZip(ZipOutputStream out, Path f) throws IOException {
-         out.putNextEntry(new ZipEntry(f.getFileName().toString())); 
-         InputStream in = Files.newInputStream(f);
-         byte[] b = new byte[1024];
-         int count;
+        out.putNextEntry(new ZipEntry(f.getFileName().toString())); 
+        InputStream in = Files.newInputStream(f);
+        byte[] b = new byte[1024];
+        int count;
 
-         while ((count = in.read(b)) > 0) {
+        while ((count = in.read(b)) > 0) {
             out.write(b, 0, count);
-         }
-         in.close();
-         out.closeEntry();
+        }
+        in.close();
+        out.closeEntry();
     }
 
 
@@ -197,29 +197,27 @@ public class Job extends Model {
     }
 
     public void remove() throws IOException {
-      Path start= jobPath();
-     Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
-         @Override
-         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-             throws IOException
-         {
-             Files.delete(file);
-             return FileVisitResult.CONTINUE;
-         }
-         @Override
-         public FileVisitResult postVisitDirectory(Path dir, IOException e)
-             throws IOException
-         {
-             if (e == null) {
-                 Files.delete(dir);
-                 return FileVisitResult.CONTINUE;
-             } else {
-                 // directory iteration failed
-                 throw e;
-             }
-         }
-     });
-      super.delete();
+        Path start= jobPath();
+        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+        {
+            Files.delete(file);
+            return FileVisitResult.CONTINUE;
+        }
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException
+        {
+            if (e == null) {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            } else {
+                // directory iteration failed
+                throw e;
+            }
+        }
+        });
+        super.delete();
     }
 
     public String statusString() {
@@ -233,7 +231,7 @@ public class Job extends Model {
             default: return "Unknown";
         }
     }
- 
+
     public static Model.Finder<Long,Job> find = 
         new Finder<Long,Job>(Long.class, Job.class);
 }

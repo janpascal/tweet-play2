@@ -86,58 +86,59 @@ public class Exporter {
 
         dateCellStyle = wb.createCellStyle();
         dateCellStyle.setDataFormat(
-            createHelper.createDataFormat().getFormat("d/m/yy h:mm:ss"));
+                createHelper.createDataFormat().getFormat("d/m/yy h:mm:ss"));
 
         df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
 
         DataFormat format = wb.createDataFormat();
         idCellStyle = wb.createCellStyle();
         idCellStyle.setDataFormat(format.getFormat("0"));
- 
+
         currentRow = 1;
     }
-    
+
     public void addTweet(SimpleTweet tweet) {
-            if (ids.contains(tweet.id)) {
-              return;
-            }
-            Row row = sheet.createRow((short)currentRow);
-            int colnr=0;
-            for (String col: columns) {
-              Cell cell = row.createCell(colnr);
-              
-              switch (col) {
-              case "id": cell.setCellType(HSSFCell.CELL_TYPE_STRING); cell.setCellValue(Long.toString(tweet.id)); break;
-              case "created_at":  cell.setCellValue(tweet.createdAt); cell.setCellStyle(dateCellStyle); break;
-              case "from_user": cell.setCellValue(tweet.userName); break;
-              case "from_user_id": cell.setCellValue(tweet.userId); cell.setCellType(HSSFCell.CELL_TYPE_NUMERIC); break;
-              case "in_reply_to": cell.setCellValue(tweet.inReplyToName); break;
-              case "text": cell.setCellValue(tweet.text); break;
-              case "geo": if (tweet.latitude != null && tweet.longitude != null) { 
-                    cell.setCellValue(tweet.latitude+","+tweet.longitude); 
-                  }
-                  break;
-              case "geo_text": 
-                           if (tweet.latitude!= null && tweet.longitude != null) {
-                                    GeocoderRequest request = new GeocoderRequest();
-                                    request.setLocation(new
-                                    LatLng(Double.toString(tweet.latitude),
-                                    Double.toString(tweet.longitude))); 
-                                    request.setLanguage("nl");
-                                    GeocodeResponse response = geocoder.geocode(request);
-                                    if(response.getStatus().equals(GeocoderStatus.OK) && !response.getResults().isEmpty()) {
-                                    GeocoderResult result = response.getResults().iterator().next();
-                                    cell.setCellValue(result.getFormattedAddress()); 
-                                    }
-                            } 
-                            break;
-              }
-              
-              colnr++;
-            }
-            ids.add(tweet.id);
-            currentRow++;
+        if (ids.contains(tweet.id)) {
+            return;
         }
+        Row row = sheet.createRow((short)currentRow);
+        int colnr=0;
+        for (String col: columns) {
+            Cell cell = row.createCell(colnr);
+
+            switch (col) {
+                case "id": cell.setCellType(HSSFCell.CELL_TYPE_STRING); cell.setCellValue(Long.toString(tweet.id)); break;
+                case "created_at":  cell.setCellValue(tweet.createdAt); cell.setCellStyle(dateCellStyle); break;
+                case "from_user": cell.setCellValue(tweet.userName); break;
+                case "from_user_id": cell.setCellValue(tweet.userId); cell.setCellType(HSSFCell.CELL_TYPE_NUMERIC); break;
+                case "in_reply_to": cell.setCellValue(tweet.inReplyToName); break;
+                case "text": cell.setCellValue(tweet.text); break;
+                case "geo": 
+                    if (tweet.latitude != null && tweet.longitude != null) { 
+                        cell.setCellValue(tweet.latitude+","+tweet.longitude); 
+                    }
+                    break;
+                case "geo_text": 
+                    if (tweet.latitude!= null && tweet.longitude != null) {
+                        GeocoderRequest request = new GeocoderRequest();
+                        request.setLocation(new
+                                LatLng(Double.toString(tweet.latitude),
+                                Double.toString(tweet.longitude))); 
+                        request.setLanguage("nl");
+                        GeocodeResponse response = geocoder.geocode(request);
+                        if(response.getStatus().equals(GeocoderStatus.OK) && !response.getResults().isEmpty()) {
+                            GeocoderResult result = response.getResults().iterator().next();
+                            cell.setCellValue(result.getFormattedAddress()); 
+                        }
+                    } 
+                    break;
+            }
+
+            colnr++;
+        }
+        ids.add(tweet.id);
+        currentRow++;
+    }
 
     public void addTweet(Status tweet) {
         SimpleTweet simple = new SimpleTweet();
@@ -158,20 +159,20 @@ public class Exporter {
     public void write(String filename) throws FileNotFoundException {
         write(new FileOutputStream(filename));
     }
-    
+
     public void write(OutputStream out) {
         try {
             wb.write(out);
             out.close();
-          } catch (IOException e) {
-                    e.printStackTrace();
-          }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void write() throws FileNotFoundException {
         write(filename);
     }
-    
+
     public String getFilename() {
         return filename;
     }

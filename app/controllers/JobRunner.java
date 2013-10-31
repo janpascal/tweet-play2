@@ -19,43 +19,43 @@ public class JobRunner {
         protected Job job;
 
         protected JobTask(Job job) {
-          this.job = job;
+            this.job = job;
         }
 
         public void run() {
             Main main = new Main();
             main.addLogger(new tweet.LogCallback() {
-              public void log(String line) {
-                Logger.info(line); 
-                try {
-                    job.addLogLine(line);
-                } catch (IOException e) {
-                  Logger.info("Error writing log line ", e);
+                public void log(String line) {
+                    Logger.info(line); 
+                    try {
+                        job.addLogLine(line);
+                    } catch (IOException e) {
+                        Logger.info("Error writing log line ", e);
+                    }
                 }
-              }
             });
             main.addHandler(
-                new Main.Handler() {
-                    public void handleNumber(int numTweets) {
-                        job.numTweets += numTweets;
-                        job.update();
-                    }
-                    public void handleStatus(boolean waiting, int secondsToWait) {
-                        if(waiting) {
-                            job.status = Job.STATUS_WAITING;
-                            job.secondsToWait = secondsToWait;
-                        } else {
-                            job.status = Job.STATUS_RUNNING;
-                            job.secondsToWait = 0;
+                    new Main.Handler() {
+                        public void handleNumber(int numTweets) {
+                            job.numTweets += numTweets;
+                            job.update();
                         }
-                        job.update();
-                    }
-            });
+                        public void handleStatus(boolean waiting, int secondsToWait) {
+                            if(waiting) {
+                                job.status = Job.STATUS_WAITING;
+                                job.secondsToWait = secondsToWait;
+                            } else {
+                                job.status = Job.STATUS_RUNNING;
+                                job.secondsToWait = 0;
+                            }
+                            job.update();
+                        }
+                    });
             try {
                 File[] files = main.runConfig(Application.getTwitterConfiguration(), job.getConfig(), job.jobPath().toString());
                 Logger.info("Adding result files to job");
                 for(File f: files) {
-                  job.addExcelResult(f);
+                    job.addExcelResult(f);
                 }
                 job.status = Job.STATUS_DONE;
                 job.update();
@@ -111,7 +111,7 @@ public class JobRunner {
         for(Job job: Job.find.all()) {
             if (job.status==null) continue; // legacy
             if (job.status==Job.STATUS_RUNNING ||
-                job.status==Job.STATUS_WAITING) {
+                    job.status==Job.STATUS_WAITING) {
                 if (! getInstance().isJobRunning(job)) {
                     job.status = Job.STATUS_FAILED;
                     job.update();

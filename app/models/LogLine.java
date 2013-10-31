@@ -41,10 +41,10 @@ public class LogLine extends Model {
     public String logline;
 
     public LogLine(Job job, String logline) {
-      this.job = job;
-      this.logline = logline;
+        this.job = job;
+        this.logline = logline;
     }
- 
+
     public static Model.Finder<Long,LogLine> find = 
         new Finder<Long,LogLine>(Long.class, LogLine.class);
 }
