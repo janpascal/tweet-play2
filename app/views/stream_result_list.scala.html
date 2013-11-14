@@ -11,8 +11,8 @@
 @main("Resultaten continu zoeken") {
     <h1>Resultaten continu zoeken</h1>
 
-    <p>Huidige zoektermen: @terms</p>
     <div class="controls">
+    Huidige zoektermen: @terms
      <a class="btn btn-primary" href="@routes.Streams.editTerms()">Pas zoektermen aan</a>
      <a class="btn btn-success" href="@routes.Streams.download()">Download resultaten</a>
      <a class="btn btn-primary" href="@routes.Streams.list(page,pageSize)">Ververs</a>

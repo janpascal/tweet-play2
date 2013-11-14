@@ -74,16 +74,8 @@ public class Streams extends Controller
             Tweet tweet = new Tweet(status);
             tweet.conformsToTerms = checkMatch(status);
             tweet.save();
-            if (tweet.conformsToTerms) {
+            if (tweet.conformsToTerms && esClient!=null) {
                 String json = DataObjectFactory.getRawJSON(status);
-                //String json = "{ \"tweet\":"+DataObjectFactory.getRawJSON(status) + " }";
-                //Logger.debug(json);
-                //"geo":{"type":"Point","coordinates":[52.3709355,4.90011692]}
-                //"geo":{"type":"Point","coordinates":"52.3709355,4.90011692"}
-                //Logger.debug("original json");
-                //Logger.debug(json);
-                //json = json.replaceAll("(\"geo\":\\{\"type\":\"Point\",\"coordinates\":)", "FOUND");
-                //json = json.replaceAll("(\"geo\":\\{\"type\":\"Point\",\"coordinates\":)\\[([0-9.,]*)\\]", "$1\"$2\"");
                 json = json.replaceAll("(\"geo\":\\{\"type\":\"Point\",\"coordinates\":)\\[([-0-9.,]*)\\]", "$1\"$2\"");
                 //Logger.debug("geo mangled json");
                 //Logger.debug(json);
@@ -185,13 +177,24 @@ public class Streams extends Controller
         }
         if(esClient!=null) {
             esClient.close();
+            esClient = null;
         }
 
-        Settings settings = ImmutableSettings.settingsBuilder()
-                .put("cluster.name", "testing").build();
+        play.Configuration pconf = Play.application().configuration();
+        String elasticSearchCluster = pconf.getString("tweet.elasticsearch.cluster.name");
+        if (elasticSearchCluster!=null) {
+            Logger.info("Configuring ElasticSearch...");
+            Settings settings = ImmutableSettings.settingsBuilder()
+                    .put("cluster.name", elasticSearchCluster).build();
 
-        esClient = new TransportClient(settings)
-                .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+            esClient = new TransportClient(settings)
+                    .addTransportAddress(new
+                        InetSocketTransportAddress(
+                            pconf.getString("tweet.elasticsearch.transport.host"),
+                            pconf.getInt("tweet.elasticsearch.transport.port")));
+        } else {
+            esClient = null;
+        }
 
         twitter4j.conf.Configuration tconf = Application.getTwitterConfiguration();
         TwitterStreamFactory tf = new TwitterStreamFactory(tconf);
@@ -247,11 +250,11 @@ public class Streams extends Controller
     }
 
     public static Result listAll() {
-        return list(0, 10);
+        return list(1, 10);
     }
 
     public static Result list(int page, int pageSize) {
-        Page<Tweet> currentPage = Tweet.page(page, pageSize);
+        Page<Tweet> currentPage = Tweet.page(page-1, pageSize);
         // List<Tweet> tweets = Tweet.find.where().eq("conformsToTerms",true).orderBy("date desc").findList();
         StreamConfig config = getConfig();
         String terms = config.listTermsAsString();

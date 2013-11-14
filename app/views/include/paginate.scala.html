@@ -1,55 +1,56 @@
-@(page:Int, pageLength:Int, collectionLength:Int, route:Int => Call, bound:Int = 5)
+@(page:Int, pageLength:Int, collectionLength:Int, route:Int => Call, bound:Int = 2)
+
+@lastpage() = @{
+    math.ceil(collectionLength.toDouble / pageLength).toInt
+}
+
 @lowbound() = @{
-((page.toDouble / bound).floor * bound) toInt
+    math.max(1,page-bound)
 }
+
 @highbound() = @{
-if ((lowbound() + bound) * pageLength >= collectionLength)
-collectionLength / pageLength + 1
-else
-lowbound() + bound
+    math.min(page+bound, lastpage())
 }
- 
+
 <div class="pb_centered">
 <div class="pagination">
 <ul>
 @if(page == 1){
-<li class="disabled"><a href="#">Previous</a></li>
+    <li class="disabled"><a href="#">Previous</a></li>
 } else {
-<li><a href="@route(page-1)">Previous</a></li>
- 
+    <li><a href="@route(page-1)">Previous</a></li>
 }
  
-@if(page < bound) {
-<li class="disabled"><a href="#">&laquo;</a></li>
-} else {
-@if(lowbound()-bound <= 0) {
-<li><a href="@route(1)">&laquo;</a></li>
-} else {
-<li><a href="@route(lowbound()-bound)">&laquo;</a></li>
+@if(lowbound() > 1) {
+    <li><a href="@route(1)">1</a></li>
 }
+
+@if(lowbound() > 2) {
+    <li class="disabled"><a href="#">&hellip;</a></li>
 }
- 
+
 @for(i <- lowbound().max(1) until page) {
-<li><a href="@route(i)">@i</a></li>
+    <li><a href="@route(i)">@i</a></li>
 }
  
 <li class="active"><a href="#">@page</a></li>
  
 @for(i <- page+1 to highbound()) {
-<li><a href="@route(i)">@i</a></li>
+    <li><a href="@route(i)">@i</a></li>
 }
- 
-@if(highbound() * pageLength <= collectionLength && highbound() > page && page * pageLength != collectionLength) {
-<li><a href="@route(highbound())">&raquo;</a></li>
-} else {
-<li class="disabled"><a href="#">&raquo;</a></li>
+
+@if(highbound() < lastpage()-1) {
+    <li class="disabled"><a href="#">&hellip;</a></li>
 }
- 
+
+@if(highbound() < lastpage()) {
+    <li><a href="@route(lastpage())">@lastpage()</a></li>
+} 
+
 @if(page < highbound()) {
-<li><a href="@route(page+1)">Next</a></li>
+    <li><a href="@route(page+1)">Next</a></li>
 } else {
-<li class="disabled"><a href="#">Next</a></li>
- 
+    <li class="disabled"><a href="#">Next</a></li>
 }
 </ul>
 </div>
