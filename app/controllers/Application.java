@@ -31,6 +31,7 @@ public class Application extends Controller {
         Configuration appConf = Play.application().configuration();
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
+            .setJSONStoreEnabled(true)
             .setOAuthConsumerKey(appConf.getString("twitter4j.oauth.consumerKey"))
             .setOAuthConsumerSecret(appConf.getString("twitter4j.oauth.consumerSecret"))
             .setOAuthAccessToken(appConf.getString("twitter4j.oauth.accessToken"))

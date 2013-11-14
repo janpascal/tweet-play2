@@ -1,4 +1,12 @@
-@(tweets: List[Tweet], terms: String)
+@(tweets: com.avaje.ebean.Page[Tweet], page: Integer, pageSize: Integer, terms: String)
+
+@****************************************
+* Helper generating navigation links    *
+****************************************@
+@link(newPage:Int) = @{
+    // Generate the link
+    routes.Streams.list(newPage, pageSize)
+}
 
 @main("Resultaten continu zoeken") {
     <h1>Resultaten continu zoeken</h1>
@@ -7,8 +15,9 @@
     <div class="controls">
      <a class="btn btn-primary" href="@routes.Streams.editTerms()">Pas zoektermen aan</a>
      <a class="btn btn-success" href="@routes.Streams.download()">Download resultaten</a>
-     <a class="btn btn-primary" href="@routes.Streams.list()">Ververs</a>
+     <a class="btn btn-primary" href="@routes.Streams.list(page,pageSize)">Ververs</a>
    </div>
+  @include.paginate(page, pageSize, tweets.getTotalRowCount(), routes.Streams.list(_,pageSize))
     <table class="table table-striped"> 
     <tr>
     <th></th>
@@ -20,7 +29,7 @@
     <th>text</th>
     <th>location</th>
     </tr>
-	@for(tweet <- tweets) {
+	@for(tweet <- tweets.getList) {
           <tr>
           <td>
                 @helper.form(action = routes.Streams.deleteTweet(tweet.id)) {
@@ -39,4 +48,32 @@
 	      </tr>
 	} 
     </table>
+  @include.paginate(page, pageSize, tweets.getTotalRowCount(), routes.Streams.list(_,pageSize))
+@*
+        <div id="pagination" class="pagination">
+            <ul>
+                @if(tweets.hasPrev) {
+                    <li class="prev hidden-print">
+                        <a href="@link(tweets.getPageIndex - 1)">&larr; Previous</a>
+                    </li>
+                } else {
+                    <li class="prev disabled hidden-print">
+                        <a>&larr; Previous</a>
+                    </li>
+                }
+                <li class="current">
+                    <a>Displaying @tweets.getDisplayXtoYofZ(" to "," of ")</a>
+                </li>
+                @if(tweets.hasNext) {
+                    <li class="next hidden-print">
+                        <a href="@link(tweets.getPageIndex + 1)">Next &rarr;</a>
+                    </li>
+                } else {
+                    <li class="next disabled hidden-print">
+                        <a>Next &rarr;</a>
+                    </li>
+                }
+            </ul>
+        </div>
+*@
 }

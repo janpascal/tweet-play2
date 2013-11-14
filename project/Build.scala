@@ -20,7 +20,8 @@ object ApplicationBuild extends Build {
     "mysql" % "mysql-connector-java" % "5.1.18",
     "org.twitter4j" % "twitter4j-core" % "[3.0,)",
     "org.twitter4j" % "twitter4j-stream" % "[3.0,)",
-    "org.twitter4j" % "twitter4j-async" % "[3.0,)"
+    "org.twitter4j" % "twitter4j-async" % "[3.0,)",
+    "org.elasticsearch" % "elasticsearch" % "0.90.5"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(

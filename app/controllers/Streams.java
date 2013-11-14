@@ -16,15 +16,25 @@ import twitter4j.URLEntity;
 import twitter4j.MediaEntity;
 import twitter4j.HashtagEntity;
 import twitter4j.UserMentionEntity;
+import twitter4j.json.DataObjectFactory;
 
 import tweet.Exporter;
 import tweet.SimpleTweet;
+
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import play.*;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.RequestBody;
 import play.data.*;
+
+import com.avaje.ebean.*;
 
 import models.*;
 import views.html.*;
@@ -34,9 +44,11 @@ public class Streams extends Controller
     public static class TweetListener implements StatusListener {
         private List<String> terms;
         private Pattern matchPattern;
+        private Client esClient;
 
-        public TweetListener(List<String> terms) {
+        public TweetListener(List<String> terms, Client esClient) {
             this.terms = terms;
+            this.esClient = esClient;
             StringBuilder query = new StringBuilder();
             for(int i=0; i<terms.size(); i++) {
                 if (i>0) query.append("|");
@@ -62,6 +74,24 @@ public class Streams extends Controller
             Tweet tweet = new Tweet(status);
             tweet.conformsToTerms = checkMatch(status);
             tweet.save();
+            if (tweet.conformsToTerms) {
+                String json = DataObjectFactory.getRawJSON(status);
+                //String json = "{ \"tweet\":"+DataObjectFactory.getRawJSON(status) + " }";
+                //Logger.debug(json);
+                //"geo":{"type":"Point","coordinates":[52.3709355,4.90011692]}
+                //"geo":{"type":"Point","coordinates":"52.3709355,4.90011692"}
+                //Logger.debug("original json");
+                //Logger.debug(json);
+                //json = json.replaceAll("(\"geo\":\\{\"type\":\"Point\",\"coordinates\":)", "FOUND");
+                //json = json.replaceAll("(\"geo\":\\{\"type\":\"Point\",\"coordinates\":)\\[([0-9.,]*)\\]", "$1\"$2\"");
+                json = json.replaceAll("(\"geo\":\\{\"type\":\"Point\",\"coordinates\":)\\[([-0-9.,]*)\\]", "$1\"$2\"");
+                //Logger.debug("geo mangled json");
+                //Logger.debug(json);
+                IndexResponse response = esClient.prepareIndex("twitter", "tweet")
+                    .setSource(json)
+                    .execute()
+                    .actionGet();
+            }
         }
         public void  onTrackLimitationNotice(int numberOfLimitedStatuses){
             Logger.info("Track limitation, missed " + numberOfLimitedStatuses);
@@ -147,26 +177,26 @@ public class Streams extends Controller
     }
 
     private static TwitterStream twitter = null;
+    private static Client esClient = null;
 
     private static void startStream(List<String> terms) throws TwitterException {
-        /*
-           if (twitter == null) {
-           twitter4j.conf.Configuration tconf = Application.getTwitterConfiguration();
-           TwitterStreamFactory tf = new TwitterStreamFactory(tconf);
-           twitter = tf.getInstance();
-           StatusListener l = new TweetListener(terms);
-           twitter.addListener(l);
-           } else {
-           twitter.cleanUp();
-           }
-         */
         if(twitter!=null) {
             twitter.cleanUp();
         }
+        if(esClient!=null) {
+            esClient.close();
+        }
+
+        Settings settings = ImmutableSettings.settingsBuilder()
+                .put("cluster.name", "testing").build();
+
+        esClient = new TransportClient(settings)
+                .addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+
         twitter4j.conf.Configuration tconf = Application.getTwitterConfiguration();
         TwitterStreamFactory tf = new TwitterStreamFactory(tconf);
         twitter = tf.getInstance();
-        StatusListener l = new TweetListener(terms);
+        StatusListener l = new TweetListener(terms, esClient);
         twitter.addListener(l);
 
         String[] tracks = new String[terms.size()];
@@ -185,6 +215,7 @@ public class Streams extends Controller
         if (twitter != null) {
             Logger.info("Closing down Twitter stream...");
             twitter.cleanUp(); 
+            esClient.close();
         } else {
             Logger.info("No twitter stream found");
         }
@@ -215,17 +246,22 @@ public class Streams extends Controller
         return ok(edit_stream_form.render(terms));
     }
 
-    public static Result list() {
-        List<Tweet> tweets = Tweet.find.where().eq("conformsToTerms",true).orderBy("date desc").findList();
+    public static Result listAll() {
+        return list(0, 10);
+    }
+
+    public static Result list(int page, int pageSize) {
+        Page<Tweet> currentPage = Tweet.page(page, pageSize);
+        // List<Tweet> tweets = Tweet.find.where().eq("conformsToTerms",true).orderBy("date desc").findList();
         StreamConfig config = getConfig();
         String terms = config.listTermsAsString();
-        return ok(stream_result_list.render(tweets, terms));
+        return ok(stream_result_list.render(currentPage, page, pageSize, terms));
     }
 
     public static Result deleteTweet(Long id) {
         Tweet.find.ref(id).delete();
         flash("success", "Tweet deleted");
-        return redirect(routes.Streams.list());
+        return redirect(routes.Streams.listAll());
     }
 
     public static void startConnection() {
@@ -269,7 +305,7 @@ public class Streams extends Controller
             Logger.info("Error starting twitter stream", e);
             flash("error", "Error starting Twitter stream" +e.getMessage());
         }
-        return redirect(routes.Streams.list());
+        return redirect(routes.Streams.listAll());
     }
 
     public static Result download() {

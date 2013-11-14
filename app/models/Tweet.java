@@ -60,6 +60,16 @@ public class Tweet extends Model {
         return null;
     }
 
+    public static Page<Tweet> page(int page, int pageSize) {
+        return find.where()
+                .eq("conformsToTerms",true)
+                .orderBy("date desc")
+                .findPagingList(pageSize)
+                .getPage(page);
+    }
+ 
+
+
     public static Model.Finder<Long,Tweet> find = 
         new Finder<Long,Tweet>(Long.class, Tweet.class);
 

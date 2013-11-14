@@ -23,7 +23,8 @@ POST    /deletejob                  controllers.Application.deleteJob(id: Long)
 GET     /streams/editterms          controllers.Streams.editTerms()
 POST    /streams/start              controllers.Streams.start()
 GET     /streams/excel              controllers.Streams.download()
-GET     /streams/list               controllers.Streams.list()
+GET     /streams/list               controllers.Streams.listAll()
+GET     /streams/list/:page         controllers.Streams.list(page: Int, pageSize: Int)
 POST    /streams/deletetweet        controllers.Streams.deleteTweet(id: Long)
 
 #javascript routes
