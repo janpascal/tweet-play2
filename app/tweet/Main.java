@@ -23,8 +23,8 @@ public class Main {
     private List<Handler> handlers;
 
     public Main() {
-        loggers = new ArrayList<LogCallback>();
-        handlers = new ArrayList<Handler>();
+        loggers = new ArrayList<>();
+        handlers = new ArrayList<>();
     }
 
     public void addHandler(Handler handler) {
@@ -54,7 +54,7 @@ public class Main {
             fetcher.addMainHandler(handler);
         }
 
-        List<Exporter> exporters = new ArrayList<Exporter>();
+        List<Exporter> exporters = new ArrayList<>();
         for(String filename: config.getExcelSet()) {
             final Exporter e = new Exporter(prefix+"/"+filename);
             final List<String> terms = config.getTermsForExcel(filename);

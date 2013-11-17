@@ -46,5 +46,5 @@ public class LogLine extends Model {
     }
 
     public static Model.Finder<Long,LogLine> find = 
-        new Finder<Long,LogLine>(Long.class, LogLine.class);
+        new Finder<>(Long.class, LogLine.class);
 }

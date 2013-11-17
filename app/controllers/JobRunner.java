@@ -83,7 +83,7 @@ public class JobRunner {
 
     private JobRunner() {
         pool = Executors.newCachedThreadPool();
-        running = new HashSet<Long>();
+        running = new HashSet<>();
     }
 
     public static JobRunner getInstance() {

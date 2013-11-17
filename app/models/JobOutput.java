@@ -31,5 +31,5 @@ public class JobOutput extends Model {
     }
 
     public static Finder<Long,JobOutput> find = 
-        new Finder<Long,JobOutput>(Long.class, JobOutput.class); 
+        new Finder<>(Long.class, JobOutput.class); 
 }

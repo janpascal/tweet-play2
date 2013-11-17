@@ -71,6 +71,6 @@ public class Tweet extends Model {
 
 
     public static Model.Finder<Long,Tweet> find = 
-        new Finder<Long,Tweet>(Long.class, Tweet.class);
+        new Finder<>(Long.class, Tweet.class);
 
 }

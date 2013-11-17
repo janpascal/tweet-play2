@@ -31,7 +31,7 @@ public class StreamConfig extends Model {
 
     public List<String> listTerms() {
         JsonNode node = Json.parse(terms);
-        List<String> result = new ArrayList<String>(node.size());
+        List<String> result = new ArrayList<>(node.size());
         for(int i=0; i<node.size(); i++) {
             result.add(node.get(i).getTextValue());
         }
@@ -55,6 +55,6 @@ public class StreamConfig extends Model {
     }
 
     public static Model.Finder<Long,StreamConfig> find = 
-        new Finder<Long,StreamConfig>(Long.class, StreamConfig.class);
+        new Finder<>(Long.class, StreamConfig.class);
 
 }

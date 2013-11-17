@@ -89,7 +89,7 @@ public class Streams extends Controller
             Logger.info("Track limitation, missed " + numberOfLimitedStatuses);
         }
         public void  onException(java.lang.Exception ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
             Logger.warn("Exception in Twitter Stream", ex);
         }
 
@@ -279,7 +279,7 @@ public class Streams extends Controller
     public static Result start() {
         java.util.Map<String,String[]> map = request().body().asFormUrlEncoded();
 
-        List<String> terms = new ArrayList<String>(map.size());
+        List<String> terms = new ArrayList<>(map.size());
         for(int i=0; i<map.size(); i++) {
             String key = "terms["+i+"]";
             if(map.containsKey(key)) {

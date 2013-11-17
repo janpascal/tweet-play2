@@ -72,7 +72,7 @@ public class Exporter {
         this.filename = filename;
         this.geocoder = new Geocoder();
         
-        ids = new HashSet<Long>();
+        ids = new HashSet<>();
         wb = new HSSFWorkbook();
         sheet = wb.createSheet("tweets");
         createHelper = wb.getCreationHelper();

@@ -83,7 +83,7 @@ public class Job extends Model {
     }
 
     public List<String> getQueries() {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         try {
             Config config = getConfig();
             for( String key: config.getQueryNames() ) {
@@ -97,7 +97,7 @@ public class Job extends Model {
 
     public List<Path> getResults() {
         if(xls==null) {
-            xls = new ArrayList<Path>();
+            xls = new ArrayList<>();
             try {
                 File dir = jobPath().toFile();
                 FilenameFilter filter = new FilenameFilter() {
@@ -117,7 +117,7 @@ public class Job extends Model {
     }
 
     public void addExcelResult(File excel) {
-        if (xls==null) xls = new ArrayList<Path>();
+        if (xls==null) xls = new ArrayList<>();
         xls.add(excel.toPath());
     }
 
@@ -233,5 +233,5 @@ public class Job extends Model {
     }
 
     public static Model.Finder<Long,Job> find = 
-        new Finder<Long,Job>(Long.class, Job.class);
+        new Finder<>(Long.class, Job.class);
 }

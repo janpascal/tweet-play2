@@ -61,9 +61,9 @@ public class APIFetcher {
     }
 
     private void init() {
-        this.handlers = new ArrayList<Handler>();
-        this.mainHandlers = new ArrayList<Main.Handler>();
-        this.loggers = new ArrayList<LogCallback>();
+        this.handlers = new ArrayList<>();
+        this.mainHandlers = new ArrayList<>();
+        this.loggers = new ArrayList<>();
     }
 
     public void addHandler(Handler handler) {

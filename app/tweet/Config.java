@@ -15,8 +15,8 @@ import org.apache.commons.configuration.tree.DefaultExpressionEngine;
 import org.apache.commons.configuration.tree.ExpressionEngine;
 
 public class Config {
-    private Hashtable<String,String> terms = new Hashtable<String,String>();
-    private Hashtable<String,List<String>> excels = new Hashtable<String,List<String>>();
+    private Hashtable<String,String> terms = new Hashtable<>();
+    private Hashtable<String,List<String>> excels = new Hashtable<>();
     private int pageSize;
     private int maxPages;
 

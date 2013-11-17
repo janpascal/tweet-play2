@@ -44,17 +44,17 @@ public class JobDescription extends Model {
     
     Set<String> getOutputs() {
         //return outputs.keySet();
-        return new HashSet<String>();
+        return new HashSet<>();
     }
 
     public Set<String> getQueryNamesForOutput(String filename) {
         //return outputs.get(filename);
-        return new HashSet<String>();
+        return new HashSet<>();
     }
 
     public Set<String> getQueryNames() {
         //return queries.keySet();
-        return new HashSet<String>();
+        return new HashSet<>();
     }
     
     public String getQueryForName(String queryName) {
@@ -63,5 +63,5 @@ public class JobDescription extends Model {
     }
  
     public static Model.Finder<Long,JobDescription> find = 
-        new Finder<Long,JobDescription>(Long.class, JobDescription.class);
+        new Finder<>(Long.class, JobDescription.class);
 }

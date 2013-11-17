@@ -105,7 +105,7 @@ public class Application extends Controller {
             response().setHeader("Content-disposition","attachment; filename="+xlfile); 
             return ok(xl.toFile());
         } catch (IOException e) {
-            Logger.info("Exception sending sxcel file", e);
+            Logger.info("Exception sending excel file", e);
             return ok("Exception opening file");
         }
     }
