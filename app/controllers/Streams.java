@@ -46,7 +46,7 @@ public class Streams extends Controller
         private Pattern matchPattern;
         private Client esClient;
 
-        public TweetListener(List<String> terms, Client esClient) {
+        public TweetListener(List<String> terms, Client esClient, String esIndex, String esType) {
             this.terms = terms;
             this.esClient = esClient;
             StringBuilder query = new StringBuilder();
@@ -199,7 +199,11 @@ public class Streams extends Controller
         twitter4j.conf.Configuration tconf = Application.getTwitterConfiguration();
         TwitterStreamFactory tf = new TwitterStreamFactory(tconf);
         twitter = tf.getInstance();
-        StatusListener l = new TweetListener(terms, esClient);
+        StatusListener l = new TweetListener(
+            terms, esClient,
+            pconf.getString("tweet.elasticsearch.index"),
+            pconf.getString("tweet.elasticsearch.type")
+        );
         twitter.addListener(l);
 
         String[] tracks = new String[terms.size()];
@@ -218,7 +222,7 @@ public class Streams extends Controller
         if (twitter != null) {
             Logger.info("Closing down Twitter stream...");
             twitter.cleanUp(); 
-            esClient.close();
+            if (esClient!=null) esClient.close();
         } else {
             Logger.info("No twitter stream found");
         }
