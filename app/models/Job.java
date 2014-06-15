@@ -102,7 +102,7 @@ public class Job extends Model {
                 File dir = jobPath().toFile();
                 FilenameFilter filter = new FilenameFilter() {
                     public boolean accept(File dir, String name) {
-                        return name.endsWith(".xls");
+                        return name.endsWith(".xlsx") || name.endsWith(".xls");
                     }
                 };
                 for( File f: dir.listFiles(filter)) {

@@ -316,7 +316,7 @@ public class Streams extends Controller
     }
 
     public static Result download() {
-        Exporter exporter = new Exporter("/tmp/tweets.xls");
+        Exporter exporter = new Exporter("/tmp/tweets.xlsx");
 
         List<Tweet> tweets = Tweet.find.all();
 
@@ -344,8 +344,8 @@ public class Streams extends Controller
 
         //      try {
         response().setContentType("application/x-download");  
-        response().setHeader("Content-disposition","attachment; filename=tweets.xls"); 
-        return ok(new File("/tmp/tweets.xls"));
+        response().setHeader("Content-disposition","attachment; filename=tweets.xlsx"); 
+        return ok(new File("/tmp/tweets.xlsx"));
         /*
            } catch (IOException e) {
            Logger.info("Exception sending zipfile", e);

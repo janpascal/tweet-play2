@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -73,7 +73,7 @@ public class Exporter {
         this.geocoder = new Geocoder();
         
         ids = new HashSet<>();
-        wb = new HSSFWorkbook();
+        wb = new SXSSFWorkbook(100);
         sheet = wb.createSheet("tweets");
         createHelper = wb.getCreationHelper();
 
@@ -101,7 +101,7 @@ public class Exporter {
         if (ids.contains(tweet.id)) {
             return;
         }
-        Row row = sheet.createRow((short)currentRow);
+        Row row = sheet.createRow(currentRow);
         int colnr=0;
         for (String col: columns) {
             Cell cell = row.createCell(colnr);
